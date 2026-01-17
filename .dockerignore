@@ -1,0 +1,79 @@
+# .dockerignore - optimized for faster builds
+# This is used by Docker, while .containerignore is used by Podman
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Python
+__pycache__
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info
+dist
+build
+*.egg
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv
+uv.lock
+pyproject.toml
+.cache/
+.ruff_cache/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.claude/
+
+# Environment files
+.env
+.env.local
+
+# Data directories (will be mounted as volumes)
+data/documents/*
+data/vector_stores/*
+logs/*
+
+# Test files
+tests/
+*.pytest_cache/
+.coverage
+htmlcov/
+
+# Documentation
+*.md
+!README.md
+docs/
+
+# Temporary files
+*.log
+*.tmp
+temp*
+sample_*.txt
+*.pdf
+
+# Streamlit
+.streamlit/secrets.toml
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Development artifacts
+deployment/
+scripts/
+.devcontainer/
+.python-version
+
+# Antigravity brain directory
+.gemini/

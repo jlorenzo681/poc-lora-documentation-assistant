@@ -1,0 +1,75 @@
+# Containerignore file - files to exclude from container build
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Python
+__pycache__
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info
+dist
+build
+*.egg
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv
+uv.lock
+pyproject.toml
+.cache/
+.ruff_cache/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.claude/
+
+# Environment files
+.env
+.env.local
+
+# Data directories (will be mounted as volumes)
+data/documents/*
+data/vector_stores/*
+logs/*
+
+# Test files
+tests/
+*.pytest_cache/
+.coverage
+htmlcov/
+
+# Documentation (optional - remove if you want docs in container)
+*.md
+!README.md
+docs/
+
+# Temporary files
+*.log
+*.tmp
+temp*
+sample_*.txt
+*.pdf
+
+# Streamlit
+.streamlit/secrets.toml
+
+# OS files
+.DS_Store
+Thums.db
+
+# Development artifacts
+deployment/
+scripts/
+.devcontainer/
+.python-version
