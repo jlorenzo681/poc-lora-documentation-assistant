@@ -89,7 +89,7 @@ View container logs.
 # View Ollama logs
 ./scripts/logs.sh ollama
 
-# View all logs (requires podman-compose)
+# View all logs (requires docker-compose)
 ./scripts/logs.sh all
 ```
 

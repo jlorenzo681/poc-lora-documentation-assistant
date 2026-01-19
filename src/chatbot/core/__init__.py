@@ -2,11 +2,11 @@
 
 from .document_processor import DocumentProcessor
 from .vector_store_manager import VectorStoreManager
-from .rag_chain import RAGChain, RAGChatbot
+from .lora_chain import LoRAChain, LoRAChatbot
 
 __all__ = [
     "DocumentProcessor",
     "VectorStoreManager",
-    "RAGChain",
-    "RAGChatbot",
+    "LoRAChain",
+    "LoRAChatbot",
 ]

@@ -1,20 +1,18 @@
 version: '3.8'
 
 services:
-  rag-chatbot:
-    image: rag-chatbot:latest
+  lora-chatbot:
+    image: lora-chatbot:latest
     build:
       context: .
       dockerfile: Containerfile
-    container_name: rag-chatbot
+    container_name: lora-chatbot
     user: "${UID:-1000}:${GID:-1000}"
     ports:
-      - "8501:8501"
+      - "8502:8501"
     environment:
-
-      - OLLAMA_BASE_URL=${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
-      - OLLAMA_HOST=http://host.docker.internal:11434
-      - REDIS_URL=redis://redis:6379/0
+      - REDIS_URL=redis://lora-redis:6380/0
+      - LLM_BASE_URL=${LLM_BASE_URL:-http://host.docker.internal:8080/v1}
     volumes:
       # Persistent data volumes
       - .:/app:z
@@ -23,7 +21,7 @@ services:
       - ./logs:/app/logs:z
     restart: unless-stopped
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8501/_stcore/health" ]
+      test: [ "CMD", "curl", "-f", "http://localhost:8502/_stcore/health" ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -35,17 +33,16 @@ services:
     cap_add:
       - NET_BIND_SERVICE
     networks:
-      - rag-network
+      - lora-network
     depends_on:
-      # - ollama # Running locally now
-      - redis
-      - backend
+      - lora-redis
+      - lora-backend
 
-  backend:
+  lora-backend:
     build:
       context: .
       dockerfile: Containerfile
-    container_name: rag-backend
+    container_name: lora-backend
     command: uvicorn src.backend.main:app --host 0.0.0.0 --port 8000 --reload --workers 1
     volumes:
       - .:/app:z
@@ -53,26 +50,22 @@ services:
       - ./data/vector_stores:/app/data/vector_stores:z
       - ${HOME}/.cache/huggingface:/app/.cache/huggingface:z
     environment:
-      - CELERY_BROKER_URL=redis://redis:6379/0
-      - CELERY_RESULT_BACKEND=redis://redis:6379/0
-      - REDIS_URL=redis://redis:6379/0
-      - OLLAMA_BASE_URL=${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
-      - LLM_BASE_URL=${LLM_BASE_URL:-http://host.docker.internal:1234/v1}
-      - OLLAMA_HOST=http://host.docker.internal:11434
-
+      - CELERY_BROKER_URL=redis://lora-redis:6380/0
+      - CELERY_RESULT_BACKEND=redis://lora-redis:6380/0
+      - REDIS_URL=redis://lora-redis:6380/0
+      - LLM_BASE_URL=${LLM_BASE_URL:-http://host.docker.internal:8080/v1}
     ports:
-      - "8000:8000"
+      - "8001:8000"
     depends_on:
-      - redis
-      # - ollama
+      - lora-redis
     networks:
-      - rag-network
+      - lora-network
 
-  celery_worker:
+  lora-celery_worker:
     build:
       context: .
       dockerfile: Containerfile
-    container_name: rag-worker
+    container_name: lora-worker
     command: celery -A src.backend.celery_config worker --loglevel=info
     volumes:
       - .:/app:z
@@ -81,49 +74,29 @@ services:
       - ./logs:/app/logs:z
       - ${HOME}/.cache/huggingface:/app/.cache/huggingface:z
     environment:
-      - CELERY_BROKER_URL=redis://redis:6379/0
-      - CELERY_RESULT_BACKEND=redis://redis:6379/0
-      - REDIS_URL=redis://redis:6379/0
-      - OLLAMA_BASE_URL=${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
-      - LLM_BASE_URL=${LLM_BASE_URL:-http://host.docker.internal:1234/v1}
-      - OLLAMA_HOST=http://host.docker.internal:11434
-
+      - CELERY_BROKER_URL=redis://lora-redis:6380/0
+      - CELERY_RESULT_BACKEND=redis://lora-redis:6380/0
+      - REDIS_URL=redis://lora-redis:6380/0
+      - LLM_BASE_URL=${LLM_BASE_URL:-http://host.docker.internal:8080/v1}
     depends_on:
-      - redis
+      - lora-redis
     networks:
-      - rag-network
+      - lora-network
 
-  redis:
+  lora-redis:
     image: docker.io/library/redis:7-alpine
-    container_name: redis
+    container_name: lora-redis
     restart: unless-stopped
     ports:
-      - "6379:6379"
+      - "6380:6379"
     networks:
-      - rag-network
+      - lora-network
     volumes:
-      - redis-data:/data
-
-  neo4j:
-    image: docker.io/library/neo4j:5.11
-    container_name: neo4j
-    ports:
-      - "7474:7474"
-      - "7687:7687"
-    environment:
-      - NEO4J_AUTH=neo4j/password
-      - NEO4J_PLUGINS=["apoc"]
-      - NEO4J_dbms_security_procedures_unrestricted=apoc.*
-
-    volumes:
-      - neo4j-data:/data
-    networks:
-      - rag-network
+      - lora-redis-data:/data
 
 networks:
-  rag-network:
+  lora-network:
     driver: bridge
 
 volumes:
-  redis-data:
-  neo4j-data:
+  lora-redis-data:

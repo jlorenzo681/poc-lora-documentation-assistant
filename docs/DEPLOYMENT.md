@@ -9,8 +9,8 @@ This guide covers deploying the RAG Chatbot using Podman containerization.
 - [Deployment Methods](#deployment-methods)
   - [Method 1: Using Scripts (Recommended)](#method-1-using-scripts-recommended)
   - [Method 2: Using Makefile](#method-2-using-makefile)
-  - [Method 3: Manual Podman Commands](#method-3-manual-podman-commands)
-  - [Method 4: Podman Compose](#method-4-podman-compose)
+  - [Method 3: Manual Podman Commands](#method-3-manual-docker-commands)
+  - [Method 4: Podman Compose](#method-4-docker-compose)
   - [Method 5: Systemd Service](#method-5-systemd-service)
 - [Configuration](#configuration)
 - [Production Considerations](#production-considerations)
@@ -21,20 +21,20 @@ This guide covers deploying the RAG Chatbot using Podman containerization.
 
 ### Required
 
-- **Podman** 4.0 or higher ([Installation Guide](https://podman.io/getting-started/installation))
+- **Podman** 4.0 or higher ([Installation Guide](https://docker.io/getting-started/installation))
 - **Python** 3.10+ (for local development)
 - **Groq API Key** ([Get one here](https://console.groq.com/keys))
 
 ### Optional
 
-- **podman-compose** (for compose-based deployment)
+- **docker-compose** (for compose-based deployment)
 - **make** (for Makefile commands)
 
 ### Installation Check
 
 ```bash
 # Verify Podman installation
-podman --version
+docker --version
 
 # Verify Python installation
 python3 --version
@@ -122,13 +122,13 @@ For full control over deployment:
 #### Build the Image
 
 ```bash
-podman build -t rag-chatbot:latest -f Containerfile .
+docker build -t rag-chatbot:latest -f Containerfile .
 ```
 
 #### Run the Container
 
 ```bash
-podman run -d \
+docker run -d \
   --name rag-chatbot \
   -p 8501:8501 \
   --env-file .env \
@@ -145,45 +145,45 @@ podman run -d \
 
 ```bash
 # View logs
-podman logs -f rag-chatbot
+docker logs -f rag-chatbot
 
 # Stop container
-podman stop rag-chatbot
+docker stop rag-chatbot
 
 # Remove container
-podman rm rag-chatbot
+docker rm rag-chatbot
 
 # Container status
-podman ps -a
+docker ps -a
 
 # Resource usage
-podman stats rag-chatbot
+docker stats rag-chatbot
 ```
 
 ### Method 4: Podman Compose
 
-Using `podman-compose.yml` for orchestration:
+Using `docker-compose.yml` for orchestration:
 
-#### Install podman-compose
+#### Install docker-compose
 
 ```bash
-pip install podman-compose
+pip install docker-compose
 ```
 
 #### Deploy
 
 ```bash
 # Start services
-podman-compose up -d
+docker-compose up -d
 
 # View logs
-podman-compose logs -f
+docker-compose logs -f
 
 # Stop services
-podman-compose down
+docker-compose down
 
 # Restart services
-podman-compose restart
+docker-compose restart
 ```
 
 ### Method 5: Systemd Service
@@ -258,7 +258,7 @@ CMD ["streamlit", "run", "app.py", "--server.port=8080", "--server.address=0.0.0
 
 **Update port mapping:**
 ```bash
-podman run -p 8080:8080 ...
+docker run -p 8080:8080 ...
 ```
 
 ### Volume Mounts
@@ -288,7 +288,7 @@ The container is configured with security best practices:
 Add resource constraints for production:
 
 ```bash
-podman run \
+docker run \
   --memory=2g \
   --memory-swap=2g \
   --cpus=2 \
@@ -321,7 +321,7 @@ server {
 Use Caddy for automatic HTTPS:
 
 ```bash
-podman run -d \
+docker run -d \
   --name caddy \
   -p 80:80 -p 443:443 \
   -v $PWD/Caddyfile:/etc/caddy/Caddyfile \
@@ -352,13 +352,13 @@ tar -xzf backup-20250115.tar.gz
 
 ```bash
 # Real-time logs
-podman logs -f rag-chatbot
+docker logs -f rag-chatbot
 
 # Last 100 lines
-podman logs --tail 100 rag-chatbot
+docker logs --tail 100 rag-chatbot
 
 # With timestamps
-podman logs -t rag-chatbot
+docker logs -t rag-chatbot
 ```
 
 ### Health Check
@@ -367,7 +367,7 @@ The container includes a health check:
 
 ```bash
 # Check health status
-podman inspect rag-chatbot | grep -A 10 Health
+docker inspect rag-chatbot | grep -A 10 Health
 
 # Manual health check
 curl http://localhost:8501/_stcore/health
@@ -377,10 +377,10 @@ curl http://localhost:8501/_stcore/health
 
 ```bash
 # Real-time stats
-podman stats rag-chatbot
+docker stats rag-chatbot
 
 # Container info
-podman inspect rag-chatbot
+docker inspect rag-chatbot
 ```
 
 ### Application Logs
@@ -398,7 +398,7 @@ tail -f logs/*.log
 
 **Check logs:**
 ```bash
-podman logs rag-chatbot
+docker logs rag-chatbot
 ```
 
 **Common issues:**
@@ -424,8 +424,8 @@ cat .env | grep GROQ_API_KEY
 
 **Clear build cache:**
 ```bash
-podman system prune -a
-podman build --no-cache -t rag-chatbot:latest -f Containerfile .
+docker system prune -a
+docker build --no-cache -t rag-chatbot:latest -f Containerfile .
 ```
 
 ### Permission Denied on Volumes
@@ -439,7 +439,7 @@ For SELinux systems, ensure `:z` flag on volumes:
 
 **Check container is running:**
 ```bash
-podman ps | grep rag-chatbot
+docker ps | grep rag-chatbot
 ```
 
 **Check firewall:**
@@ -458,7 +458,7 @@ curl http://localhost:8501/_stcore/health
 
 **Set memory limits:**
 ```bash
-podman run --memory=2g --memory-swap=2g ...
+docker run --memory=2g --memory-swap=2g ...
 ```
 
 **Use HuggingFace embeddings instead of OpenAI** (uses less memory)
@@ -479,13 +479,13 @@ Deploy as a Podman pod with multiple containers:
 
 ```bash
 # Create pod
-podman pod create --name rag-pod -p 8501:8501
+docker pod create --name rag-pod -p 8501:8501
 
 # Run application in pod
-podman run -d --pod rag-pod --name rag-app rag-chatbot:latest
+docker run -d --pod rag-pod --name rag-app rag-chatbot:latest
 
 # Add nginx reverse proxy to pod
-podman run -d --pod rag-pod --name rag-nginx nginx:alpine
+docker run -d --pod rag-pod --name rag-nginx nginx:alpine
 ```
 
 ### Kubernetes/OpenShift
@@ -493,7 +493,7 @@ podman run -d --pod rag-pod --name rag-nginx nginx:alpine
 Generate Kubernetes YAML:
 
 ```bash
-podman generate kube rag-chatbot > rag-chatbot-k8s.yaml
+docker generate kube rag-chatbot > rag-chatbot-k8s.yaml
 kubectl apply -f rag-chatbot-k8s.yaml
 ```
 
@@ -503,13 +503,13 @@ Enable automatic image updates:
 
 ```bash
 # Add label to container
-podman run -d \
+docker run -d \
   --label "io.containers.autoupdate=registry" \
   --name rag-chatbot \
   rag-chatbot:latest
 
 # Enable auto-update service
-systemctl --user enable podman-auto-update.timer
+systemctl --user enable docker-auto-update.timer
 ```
 
 ## Performance Tuning
@@ -517,7 +517,7 @@ systemctl --user enable podman-auto-update.timer
 ### Container Optimization
 
 ```bash
-podman run \
+docker run \
   --cpus=4 \
   --memory=4g \
   --memory-swap=4g \
@@ -539,7 +539,7 @@ For issues or questions:
 
 1. Check [README.md](README.md) for general documentation
 2. Review [SETUP.md](SETUP.md) for installation help
-3. Check logs: `podman logs rag-chatbot`
+3. Check logs: `docker logs rag-chatbot`
 4. Open an issue on GitHub
 
 ## Next Steps

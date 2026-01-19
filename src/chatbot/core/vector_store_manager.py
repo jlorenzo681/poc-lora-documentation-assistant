@@ -283,15 +283,18 @@ class VectorStoreManager:
     def add_documents(self, documents: List[Document]):
         """
         Add new documents to an existing vector store.
-
-        Args:
-            documents: List of Document objects to add
+        If store doesn't exist, create it.
         """
         if self.vector_store is None:
-            raise ValueError("No vector store exists. Create one first.")
+            print("ℹ️ No vector store exists, creating new one...")
+            self.create_vector_store(documents, cache_key="faiss_index")
+            return
 
         print(f"\n➕ Adding {len(documents)} documents to vector store...")
         self.vector_store.add_documents(documents)
+        
+        # Auto-save after addition
+        self.save_vector_store("data/vector_stores/faiss_index") # Or track current path
         print("✓ Documents added successfully")
         
         if self.event_bus:
@@ -324,13 +327,17 @@ class VectorStoreManager:
     def get_retriever(self, k: int = 4) -> VectorStoreRetriever:
         """
         Get a retriever for the vector store.
-
-        Args:
-            k: Number of documents to retrieve
-
-        Returns:
-            Retriever instance
         """
+        # Lazy load if missing
+        if self.vector_store is None:
+            print("Using lazy load in get_retriever...")
+            try:
+                # Try default path
+                default_path = "data/vector_stores/faiss_index"
+                self.load_vector_store(default_path)
+            except Exception as e:
+                print(f"Lazy load failed: {e}")
+
         if self.vector_store is None:
             raise ValueError("No vector store exists. Create or load one first.")
 

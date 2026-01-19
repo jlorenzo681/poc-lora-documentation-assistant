@@ -1,6 +1,6 @@
 """
-Agent Graph Module
-Implements the multi-agent orchestration for the RAG chatbot using LangGraph.
+Agent LoRA Module
+Implements the multi-agent orchestration for the LoRA chatbot using LangGraph.
 """
 
 from typing import TypedDict, List, Literal, Dict, Any
@@ -9,11 +9,11 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from langgraph.graph import StateGraph, END
 from .vector_store_manager import VectorStoreManager
-from .rag_chain import RAGChain
+from .lora_chain import LoRAChain
 
-class GraphState(TypedDict):
+class LoRAState(TypedDict):
     """
-    Represents the state of the agent graph.
+    Represents the state of the agent LoRA.
     """
     question: str
     generation: str
@@ -21,29 +21,29 @@ class GraphState(TypedDict):
     web_search_needed: bool
 
 
-class AgentGraph:
+class AgentLoRA:
     """
-    Manages the multi-agent graph workflow.
+    Manages the multi-agent LoRA workflow.
     """
 
-    def __init__(self, vector_store_manager: VectorStoreManager, rag_chain: RAGChain):
+    def __init__(self, vector_store_manager: VectorStoreManager, lora_chain: LoRAChain):
         """
-        Initialize the agent graph.
+        Initialize the agent LoRA.
 
         Args:
             vector_store_manager: Initialized VectorStoreManager
-            rag_chain: Initialized RAGChain (provides LLM)
+            lora_chain: Initialized LoRAChain (provides LLM)
         """
         self.vector_store_manager = vector_store_manager
-        self.rag_chain = rag_chain
-        self.llm = rag_chain.llm  # Reuse the LLM from RAGChain
+        self.lora_chain = lora_chain
+        self.llm = lora_chain.llm  # Reuse the LLM from LoRAChain
         self.app = self._build_graph()
 
     def _build_graph(self):
         """
         Build and compile the state graph.
         """
-        workflow = StateGraph(GraphState)
+        workflow = StateGraph(LoRAState)
 
         # Define nodes
         workflow.add_node("retrieve", self.retrieve)
@@ -70,7 +70,7 @@ class AgentGraph:
 
         return workflow.compile()
 
-    def retrieve(self, state: GraphState) -> Dict[str, Any]:
+    def retrieve(self, state: LoRAState) -> Dict[str, Any]:
         """
         Retrieve documents from vector store.
         """
@@ -81,7 +81,7 @@ class AgentGraph:
         documents = self.vector_store_manager.similarity_search(question, k=4)
         return {"documents": documents, "question": question}
 
-    def grade_documents(self, state: GraphState) -> Dict[str, Any]:
+    def grade_documents(self, state: LoRAState) -> Dict[str, Any]:
         """
         Determines whether the retrieved documents are relevant to the question.
         If any document is not relevant, we will set a flag to run web search (or rewrite query).
@@ -124,7 +124,7 @@ class AgentGraph:
             
         return {"documents": filtered_docs, "question": question, "web_search_needed": web_search_needed}
 
-    def generate(self, state: GraphState) -> Dict[str, Any]:
+    def generate(self, state: LoRAState) -> Dict[str, Any]:
         """
         Generate answer.
         """
@@ -133,10 +133,10 @@ class AgentGraph:
         documents = state["documents"]
         
         # Reuse existing chain logic if possible or build ad-hoc
-        # Using a simple chain for generation here using the RagChain's LLM
+        # Using a simple chain for generation here using the LoRAChain's LLM
         
         prompt = ChatPromptTemplate.from_messages([
-            ("system", self.rag_chain.system_prompt),
+            ("system", self.lora_chain.system_prompt),
             ("human", "Context: {context} \n\n Question: {question}")
         ])
         
@@ -148,7 +148,7 @@ class AgentGraph:
         
         return {"documents": documents, "question": question, "generation": generation}
 
-    def rewrite_query(self, state: GraphState) -> Dict[str, Any]:
+    def rewrite_query(self, state: LoRAState) -> Dict[str, Any]:
         """
         Transform the query to produce a better question.
         """
@@ -165,7 +165,7 @@ class AgentGraph:
         
         return {"question": better_question}
 
-    def decide_to_generate(self, state: GraphState) -> Literal["generate", "rewrite_query"]:
+    def decide_to_generate(self, state: LoRAState) -> Literal["generate", "rewrite_query"]:
         """
         Determines whether to generate an answer, or re-generate a question.
         """

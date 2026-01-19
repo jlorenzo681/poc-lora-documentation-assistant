@@ -10,7 +10,6 @@ dependencies = [
     "langchain-community==0.2.16",
     "langchain-core==0.2.38",
     "langchain-huggingface==0.0.3",
-    "langchain-ollama==0.1.0",
     "langchain-openai==0.1.23",
     "langchain-text-splitters==0.2.4",
     "pypdf==4.3.1",
@@ -32,6 +31,9 @@ dependencies = [
     "neo4j>=5.20.0",
     "json-repair>=0.25.0",
     "streamlit-agraph>=0.0.45",
+    "mlx>=0.21.0",
+    "mlx-lm>=0.21.1",
+    "datasets>=2.20.0",
 ]
 
 [dependency-groups]

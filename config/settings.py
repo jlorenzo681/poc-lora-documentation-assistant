@@ -32,20 +32,34 @@ EMBEDDING_MODEL_EN: str = "nomic-ai/nomic-embed-text-v1.5-GGUF" # High quality E
 EMBEDDING_MODEL_MULTILINGUAL: str = "text-embedding-bge-m3"   # High quality Multilingual model (LM Studio)
 FASTTEXT_MODEL_PATH: str = "data/models/lid.176.ftz"
 
-# GraphRAG Settings
-ENABLE_GRAPHRAG: bool = True
-NEO4J_URI: str = "bolt://neo4j:7687"
-NEO4J_USERNAME: str = "neo4j"
-NEO4J_PASSWORD: str = "password"
+# LoRA Settings (Training)
+ENABLE_LORA: bool = True
+TRAINING_LLM_PROVIDER: str = "mlx"
+TRAINING_MODEL: str = "mlx-community/Mistral-7B-Instruct-v0.3-4bit"
+MLX_MODEL_PATH: str = TRAINING_MODEL # Alias for backward compatibility if needed
+MLX_ADAPTER_PATH: str = "data/adapters"
 
-# LLM Settings
-DEFAULT_LLM_PROVIDER: str = "lmstudio" # Options: "ollama", "lmstudio"
-DEFAULT_LLM_MODEL: str = "local-model" # LM Studio will auto-detect or user selects
-LLM_BASE_URL: str = os.getenv("LLM_BASE_URL", "http://host.docker.internal:1234/v1")
+
+# LLM Settings (Runtime / Docker)
+# Provider options: "lmstudio" (default), "mlx_server"
+DEFAULT_LLM_PROVIDER: str = "lmstudio" 
+
+# Base URLs (Docker host# LLM Configuration
+LLM_PROVIDER = os.getenv("LLM_PROVIDER", "mlx") # Options: "mlx", "lmstudio"
+DEFAULT_LLM_PROVIDER = "mlx" 
+LM_STUDIO_URL = os.getenv("LLM_BASE_URL", "http://host.docker.internal:8080/v1") # Default to MLX Server for Docker
+
+# MLX Specifics (for local training/inference)
+MLX_MODEL_PATH = os.getenv("MLX_MODEL_PATH", "mlx-community/Mistral-7B-Instruct-v0.3-4bit")
+MLX_ADAPTER_PATH = os.getenv("MLX_ADAPTER_PATH", "data/adapters")
+
+# RAG Settings (Restored)
+CHUNK_SIZE = 500
+CHUNK_OVERLAP = 50
+VECTOR_STORE_PATH = os.path.join(DATA_DIR, "vector_stores")
+
 DEFAULT_TEMPERATURE: float = 0.3
 DEFAULT_MAX_TOKENS: int = 500
-
-# Retrieval Settings
 DEFAULT_RETRIEVAL_K: int = 4
 
 # Memory Settings

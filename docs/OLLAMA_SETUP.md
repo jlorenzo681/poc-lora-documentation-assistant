@@ -26,10 +26,10 @@ Before using Ollama, you need to pull at least one model:
 
 ```bash
 # Pull llama3.2:3b (recommended)
-podman exec ollama ollama pull llama3.2:3b
+docker exec ollama ollama pull llama3.2:3b
 
 # Or pull other models
-podman exec ollama ollama pull llama3.1:70b  # Large model, ~40GB
+docker exec ollama ollama pull llama3.1:70b  # Large model, ~40GB
 ```
 
 ### 3. Select Ollama in the UI
@@ -79,7 +79,7 @@ Add to your `.env` file:
 OLLAMA_BASE_URL=http://ollama:11434
 ```
 
-### podman-compose.yml
+### docker-compose.yml
 
 The Ollama service is configured with:
 - Persistent volume for models (`ollama-data`)
@@ -107,20 +107,20 @@ You can switch between Groq and Ollama at any time in the UI:
 
 ```bash
 # Check container status
-podman ps -a | grep ollama
+docker ps -a | grep ollama
 
 # View logs
-podman logs ollama
+docker logs ollama
 ```
 
 ### Model not found
 
 ```bash
 # List downloaded models
-podman exec ollama ollama list
+docker exec ollama ollama list
 
 # Pull the missing model
-podman exec ollama ollama pull llama3.2:3b
+docker exec ollama ollama pull llama3.2:3b
 ```
 
 ### Connection error
@@ -128,7 +128,7 @@ podman exec ollama ollama pull llama3.2:3b
 Ensure both containers are on the same network:
 
 ```bash
-podman network inspect rag-network
+docker network inspect rag-network
 ```
 
 ### Out of disk space
@@ -137,13 +137,13 @@ Ollama models are large. Check available space:
 
 ```bash
 df -h
-podman system df
+docker system df
 ```
 
 Remove unused models:
 
 ```bash
-podman exec ollama ollama rm <model-name>
+docker exec ollama ollama rm <model-name>
 ```
 
 ## Performance Tips
@@ -175,13 +175,13 @@ make stop
 make logs
 
 # Pull a new model
-podman exec ollama ollama pull <model-name>
+docker exec ollama ollama pull <model-name>
 
 # List models
-podman exec ollama ollama list
+docker exec ollama ollama list
 
 # Remove a model
-podman exec ollama ollama rm <model-name>
+docker exec ollama ollama rm <model-name>
 
 # Check Ollama status
 curl http://localhost:11434/api/version

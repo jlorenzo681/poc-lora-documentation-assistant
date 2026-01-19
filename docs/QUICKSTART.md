@@ -80,7 +80,7 @@ make test                         # Run tests
 sudo ss -tulpn | grep 8501
 
 # Kill the process or change port
-podman run -p 8080:8501 ...
+docker run -p 8080:8501 ...
 ```
 
 ### API Key Not Working
@@ -94,7 +94,7 @@ cat .env | grep GROQ_API_KEY
 ### Container Won't Start
 ```bash
 # Check logs
-podman logs rag-chatbot
+docker logs rag-chatbot
 
 # Rebuild image
 make clean
