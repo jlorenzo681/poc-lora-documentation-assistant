@@ -85,10 +85,11 @@ services:
 
   lora-redis:
     image: docker.io/library/redis:7-alpine
+    command: redis-server --port 6380
     container_name: lora-redis
     restart: unless-stopped
     ports:
-      - "6380:6379"
+      - "6380:6380"
     networks:
       - lora-network
     volumes:
