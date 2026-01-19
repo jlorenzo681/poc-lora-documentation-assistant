@@ -58,6 +58,25 @@ stop:
 # Restart containers
 restart: stop deploy
 
+# Start MLX Model Server (Mac only)
+start-mlx:
+	@echo "Starting MLX Model Server..."
+	@if [ -f ".venv/bin/python" ]; then \
+		nohup .venv/bin/python scripts/serve_mlx_model.py --port 8080 > .mlx_server.log 2>&1 & \
+	elif [ -f ".venv/bin/python3" ]; then \
+		nohup .venv/bin/python3 scripts/serve_mlx_model.py --port 8080 > .mlx_server.log 2>&1 & \
+	else \
+		nohup python3 scripts/serve_mlx_model.py --port 8080 > .mlx_server.log 2>&1 & \
+	fi
+	@echo "Server started. Logs: tail -f .mlx_server.log"
+	@echo "PID saved to .mlx_server.pid"
+	@echo $$! > .mlx_server.pid`)"
+
+# Stop MLX Server manually
+stop-mlx:
+	@echo "Stopping MLX server..."
+	@[ -f .mlx_server.pid ] && kill `cat .mlx_server.pid` && rm .mlx_server.pid && echo "MLX server stopped" || echo "MLX server not running"
+
 # View logs
 logs:
 	@./scripts/logs.sh
@@ -65,7 +84,7 @@ logs:
 # Open shell in container
 shell:
 	@echo "Opening shell in container..."
-	docker exec -it rag-chatbot /bin/bash
+	docker exec -it lora-chatbot /bin/bash
 
 # Clean up - containers only
 clean:

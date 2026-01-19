@@ -84,11 +84,11 @@ echo "Generating requirements.txt..."
 uv export --format requirements-txt > requirements.txt
 
 # Build the image only if it doesn't exist
-if ! docker image inspect rag-chatbot:latest >/dev/null 2>&1; then
+if ! docker image inspect lora-chatbot:latest >/dev/null 2>&1; then
     echo -e "\n${YELLOW}Image not found. Building container image...${NC}"
-    docker build -t rag-chatbot:latest -f Containerfile .
+    docker build -t lora-chatbot:latest -f Containerfile .
 else
-    echo -e "\n${GREEN}✓ Image rag-chatbot:latest already exists${NC}"
+    echo -e "\n${GREEN}✓ Image lora-chatbot:latest already exists${NC}"
 fi
 
 # Stop existing containers via compose
@@ -107,52 +107,74 @@ fi
 echo -e "\n${GREEN}Starting RAG Chatbot and Ollama services...${NC}"
 $COMPOSE_CMD up -d
 
+# Start MLX Server if requested or default
+MLX_SERVER_PID_FILE=".mlx_server.pid"
+MLX_SERVER_LOG=".mlx_server.log"
+
+if [ "$LLM_PROVIDER" = "mlx" ] || [ -z "$LLM_PROVIDER" ]; then
+    echo -e "\n${YELLOW}Starting MLX Server...${NC}"
+    if [ -f "$MLX_SERVER_PID_FILE" ]; then
+        if ps -p $(cat "$MLX_SERVER_PID_FILE") > /dev/null; then
+            echo -e "${GREEN}✓ MLX Server already running (PID: $(cat "$MLX_SERVER_PID_FILE"))${NC}"
+        else
+            rm "$MLX_SERVER_PID_FILE"
+        fi
+    fi
+
+    if [ ! -f "$MLX_SERVER_PID_FILE" ]; then
+        # Determine Python interpreter
+        if [ -f ".venv/bin/python" ]; then
+            PYTHON_CMD=".venv/bin/python"
+        elif [ -f ".venv/bin/python3" ]; then
+            PYTHON_CMD=".venv/bin/python3"
+        else
+            PYTHON_CMD="python3"
+        fi
+        
+        nohup $PYTHON_CMD scripts/serve_mlx_model.py --port 8080 > "$MLX_SERVER_LOG" 2>&1 &
+        echo $! > "$MLX_SERVER_PID_FILE"
+        echo -e "${GREEN}✓ MLX Server started (PID: $(cat "$MLX_SERVER_PID_FILE"))${NC}"
+        echo "Waiting for MLX Server to be ready..."
+        # Simple wait loop
+        for i in {1..30}; do
+            if curl -s http://localhost:8080/v1/models >/dev/null; then
+                echo -e "${GREEN}✓ MLX Server is ready${NC}"
+                break
+            fi
+            sleep 1
+        done
+    fi
+fi
+
 # Wait for application to start
 echo -e "\n${YELLOW}Waiting for application to start...${NC}"
 sleep 5
 
 # Check if containers are running
-if docker ps | grep -q rag-chatbot && docker ps | grep -q ollama; then
+if docker ps | grep -q lora-chatbot; then
     echo -e "\n${GREEN}======================================"
     echo "✓ Deployment successful!"
     echo "======================================${NC}"
     echo ""
     echo "Services running:"
-    echo "  - RAG Chatbot: http://localhost:8501"
-    echo "  - Ollama:      http://localhost:11434"
+    echo "  - Chatbot:     http://localhost:8502"
+    echo "  - Backend:     http://localhost:8001"
+    if [ "$LLM_PROVIDER" = "mlx" ]; then
+        echo "  - MLX Server:  http://localhost:8080"
+    fi
     echo ""
     echo "Useful commands:"
-    echo "  View logs:           docker logs -f rag-chatbot"
-    echo "  View ollama logs:    docker logs -f ollama"
-    echo "  Stop all:            $COMPOSE_CMD down"
-    echo "  Restart all:         $COMPOSE_CMD restart"
-    echo "  Container status:    $COMPOSE_CMD ps"
-    echo "  Pull ollama models:  ./scripts/pull-ollama-models.sh [--all|model_name]"
+    echo "  View logs:           ./scripts/logs.sh"
+    echo "  Stop all:            make stop"
+    echo "  Restart all:         make restart"
+    echo "  Container status:    docker-compose ps"
     echo ""
 
-    # Pull Ollama models if requested
-    if [ "$PULL_MODELS" = true ]; then
-        echo -e "${YELLOW}Waiting for Ollama to be fully ready...${NC}"
-        sleep 5
-
-        if [ -n "$MODEL_TO_PULL" ]; then
-            echo -e "${GREEN}Pulling Ollama model: $MODEL_TO_PULL${NC}"
-            ./scripts/pull-ollama-models.sh "$MODEL_TO_PULL"
-        else
-            echo -e "${GREEN}Pulling all Ollama models...${NC}"
-            ./scripts/pull-ollama-models.sh --all
-        fi
-    else
-        echo -e "${YELLOW}Note: No Ollama models pulled. To pull models, run:${NC}"
-        echo "  ./scripts/pull-ollama-models.sh --all"
-        echo "  or: ./scripts/pull-ollama-models.sh llama3.2:3b"
-    fi
 else
     echo -e "\n${RED}======================================"
     echo "✗ Deployment failed!"
     echo "======================================${NC}"
     echo "Check logs with:"
-    echo "  docker logs rag-chatbot"
-    echo "  docker logs ollama"
+    echo "  ./scripts/logs.sh"
     exit 1
 fi

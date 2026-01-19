@@ -39,9 +39,7 @@ services:
       - lora-backend
 
   lora-backend:
-    build:
-      context: .
-      dockerfile: Containerfile
+    image: lora-chatbot:latest
     container_name: lora-backend
     command: uvicorn src.backend.main:app --host 0.0.0.0 --port 8000 --reload --workers 1
     volumes:
@@ -62,9 +60,7 @@ services:
       - lora-network
 
   lora-celery_worker:
-    build:
-      context: .
-      dockerfile: Containerfile
+    image: lora-chatbot:latest
     container_name: lora-worker
     command: celery -A src.backend.celery_config worker --loglevel=info
     volumes:

@@ -83,24 +83,56 @@ if docker ps -a --format "{{.Names}}" | grep -q "^buildx_buildkit_default$"; the
     echo -e "${GREEN}✓ buildx_buildkit_default removed${NC}"
 fi
 
-# Start all services using compose with project name to avoid state issues
-echo -e "\n${GREEN}Starting development stack (Ollama, Redis, Backend, Worker, Frontend)...${NC}"
-DOCKER_BUILDKIT=1 $COMPOSE_CMD -p rag-fresh up --build -d
+# Start MLX Server if requested or default
+MLX_SERVER_PID_FILE=".mlx_server.pid"
+MLX_SERVER_LOG=".mlx_server.log"
+
+if [ "$LLM_PROVIDER" = "mlx" ] || [ -z "$LLM_PROVIDER" ]; then
+    echo -e "\n${YELLOW}Starting MLX Server (Dev Mode)...${NC}"
+    if [ -f "$MLX_SERVER_PID_FILE" ]; then
+        if ps -p $(cat "$MLX_SERVER_PID_FILE") > /dev/null; then
+            echo -e "${GREEN}✓ MLX Server already running (PID: $(cat "$MLX_SERVER_PID_FILE"))${NC}"
+        else
+            rm "$MLX_SERVER_PID_FILE"
+        fi
+    fi
+
+    if [ ! -f "$MLX_SERVER_PID_FILE" ]; then
+        nohup python3 scripts/serve_mlx_model.py --port 8080 > "$MLX_SERVER_LOG" 2>&1 &
+        echo $! > "$MLX_SERVER_PID_FILE"
+        echo -e "${GREEN}✓ MLX Server started (PID: $(cat "$MLX_SERVER_PID_FILE"))${NC}"
+        echo "Waiting for MLX Server to be ready..."
+        # Simple wait loop
+        for i in {1..30}; do
+            if curl -s http://localhost:8080/v1/models >/dev/null; then
+                echo -e "${GREEN}✓ MLX Server is ready${NC}"
+                break
+            fi
+            sleep 1
+        done
+    fi
+fi
+
+# Start all services using compose
+echo -e "\n${GREEN}Starting development stack (Redis, Backend, Worker, Frontend)...${NC}"
+DOCKER_BUILDKIT=1 $COMPOSE_CMD up --build -d
 
 # Wait for services to be ready
 echo -e "${YELLOW}Waiting for services to start...${NC}"
 sleep 10
 
 # Check if containers are running
-if docker ps | grep -q rag-chatbot; then
+if docker ps | grep -q lora-chatbot; then
     echo -e "\n${GREEN}======================================"
     echo "✓ Development mode started!"
     echo "======================================${NC}"
     echo ""
     echo "Services running:"
-    echo "  - Frontend:      http://localhost:8501"
-    echo "  - Backend API:   http://localhost:8000/docs"
-    echo "  - Ollama:        http://localhost:11434"
+    echo "  - Frontend:      http://localhost:8502"
+    echo "  - Backend API:   http://localhost:8001"
+    if [ "$LLM_PROVIDER" = "mlx" ]; then
+        echo "  - MLX Server:  http://localhost:8080"
+    fi
     echo ""
     echo "Hot reload enabled for:"
     echo "  - app.py"
@@ -111,34 +143,16 @@ if docker ps | grep -q rag-chatbot; then
     echo "Changes to these files will be reflected immediately!"
     echo ""
     echo "Useful commands:"
-    echo "  View logs:           docker logs -f rag-chatbot"
-    echo "  View ollama logs:    docker logs -f ollama"
-    echo "  Stop dev container:  docker stop rag-chatbot"
+    echo "  View logs:           docker logs -f lora-chatbot"
+    echo "  Stop dev container:  docker stop lora-chatbot"
     echo "  Stop all:            $COMPOSE_CMD down"
     echo "  Pull ollama models:  ./scripts/pull-ollama-models.sh [--all|model_name]"
     echo ""
 
-    # Pull Ollama models if requested
-    if [ "$PULL_MODELS" = true ]; then
-        echo -e "${YELLOW}Waiting for Ollama to be fully ready...${NC}"
-        sleep 3
-
-        if [ -n "$MODEL_TO_PULL" ]; then
-            echo -e "${GREEN}Pulling Ollama model: $MODEL_TO_PULL${NC}"
-            ./scripts/pull-ollama-models.sh "$MODEL_TO_PULL"
-        else
-            echo -e "${GREEN}Pulling all Ollama models...${NC}"
-            ./scripts/pull-ollama-models.sh --all
-        fi
-    else
-        echo -e "${YELLOW}Note: No Ollama models pulled. To pull models, run:${NC}"
-        echo "  ./scripts/pull-ollama-models.sh --all"
-        echo "  or: ./scripts/pull-ollama-models.sh llama3.2:3b"
-    fi
 else
     echo -e "\n${RED}======================================"
     echo "✗ Failed to start development mode!"
     echo "======================================${NC}"
-    echo "Check logs with: docker logs rag-chatbot"
+    echo "Check logs with: docker logs lora-chatbot"
     exit 1
 fi

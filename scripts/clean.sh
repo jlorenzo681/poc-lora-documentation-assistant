@@ -15,6 +15,11 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
+# Stop MLX Server if running
+if [ -f "scripts/stop.sh" ]; then
+    ./scripts/stop.sh >/dev/null 2>&1 || true
+fi
+
 # Parse flags
 REMOVE_IMAGES=false
 REMOVE_VOLUMES=false
@@ -61,16 +66,28 @@ elif docker compose version &> /dev/null; then
     echo -e "${GREEN}✓ Containers stopped via docker compose${NC}"
 else
     # Manual removal
-    if docker ps -a | grep -q rag-chatbot; then
-        docker stop rag-chatbot 2>/dev/null || true
-        docker rm rag-chatbot 2>/dev/null || true
-        echo -e "${GREEN}✓ rag-chatbot container removed${NC}"
+    if docker ps -a | grep -q lora-chatbot; then
+        docker stop lora-chatbot 2>/dev/null || true
+        docker rm lora-chatbot 2>/dev/null || true
+        echo -e "${GREEN}✓ lora-chatbot container removed${NC}"
     fi
 
-    if docker ps -a | grep -q ollama; then
-        docker stop ollama 2>/dev/null || true
-        docker rm ollama 2>/dev/null || true
-        echo -e "${GREEN}✓ ollama container removed${NC}"
+    if docker ps -a | grep -q lora-backend; then
+        docker stop lora-backend 2>/dev/null || true
+        docker rm lora-backend 2>/dev/null || true
+        echo -e "${GREEN}✓ lora-backend container removed${NC}"
+    fi
+    
+    if docker ps -a | grep -q lora-worker; then
+        docker stop lora-worker 2>/dev/null || true
+        docker rm lora-worker 2>/dev/null || true
+        echo -e "${GREEN}✓ lora-worker container removed${NC}"
+    fi
+
+    if docker ps -a | grep -q lora-redis; then
+        docker stop lora-redis 2>/dev/null || true
+        docker rm lora-redis 2>/dev/null || true
+        echo -e "${GREEN}✓ lora-redis container removed${NC}"
     fi
 
     if docker ps -a --format "{{.Names}}" | grep -q "^buildx_buildkit_default$"; then
@@ -84,18 +101,11 @@ fi
 if [ "$REMOVE_IMAGES" = true ]; then
     echo -e "\n${YELLOW}Removing images...${NC}"
 
-    if docker image inspect rag-chatbot:latest >/dev/null 2>&1; then
-        docker rmi rag-chatbot:latest 2>/dev/null || true
-        echo -e "${GREEN}✓ rag-chatbot image removed${NC}"
+    if docker image inspect lora-chatbot:latest >/dev/null 2>&1; then
+        docker rmi lora-chatbot:latest 2>/dev/null || true
+        echo -e "${GREEN}✓ lora-chatbot image removed${NC}"
     else
-        echo -e "${YELLOW}⚠ rag-chatbot image not found${NC}"
-    fi
-
-    if docker image inspect docker.io/ollama/ollama:latest >/dev/null 2>&1; then
-        docker rmi docker.io/ollama/ollama:latest 2>/dev/null || true
-        echo -e "${GREEN}✓ Ollama image removed${NC}"
-    else
-        echo -e "${YELLOW}⚠ Ollama image not found${NC}"
+        echo -e "${YELLOW}⚠ lora-chatbot image not found${NC}"
     fi
 else
     echo -e "\n${YELLOW}⚠ Images kept (use --images flag to remove)${NC}"
@@ -105,26 +115,19 @@ fi
 if [ "$REMOVE_VOLUMES" = true ]; then
     echo -e "\n${YELLOW}Removing volumes...${NC}"
 
-    if docker volume inspect ollama-data >/dev/null 2>&1; then
-        docker volume rm ollama-data 2>/dev/null || true
-        echo -e "${GREEN}✓ Ollama data volume removed${NC}"
+    if docker volume inspect poc-lora-documentation-assistant_lora-redis-data >/dev/null 2>&1; then
+        docker volume rm poc-lora-documentation-assistant_lora-redis-data 2>/dev/null || true
+        echo -e "${GREEN}✓ Redis data volume removed${NC}"
     else
-        echo -e "${YELLOW}⚠ Ollama data volume not found${NC}"
-    fi
-
-    if docker volume inspect poc-rag-chatbot-wiki_hf-cache >/dev/null 2>&1; then
-        docker volume rm poc-rag-chatbot-wiki_hf-cache 2>/dev/null || true
-        echo -e "${GREEN}✓ HuggingFace cache volume removed${NC}"
-    else
-        echo -e "${YELLOW}⚠ HuggingFace cache volume not found${NC}"
+        echo -e "${YELLOW}⚠ Redis data volume not found (check project prefix)${NC}"
     fi
 else
-    echo -e "\n${YELLOW}⚠ Volumes kept (use --volumes flag to remove Ollama models)${NC}"
+    echo -e "\n${YELLOW}⚠ Volumes kept (use --volumes flag to remove)${NC}"
 fi
 
 # Remove networks if they exist and have no containers
 echo -e "\n${YELLOW}Cleaning up networks...${NC}"
-for network in rag-network poc-rag-chatbot-wiki_rag-network; do
+for network in lora-network poc-lora-documentation-assistant_lora-network; do
     if docker network inspect $network >/dev/null 2>&1; then
         # Check if network has any containers
         # Docker syntax for network inspect is lengthy, easier to just try removing
@@ -132,6 +135,16 @@ for network in rag-network poc-rag-chatbot-wiki_rag-network; do
         echo -e "${GREEN}✓ Network $network removed (if empty)${NC}"
     fi
 done
+
+# Cleanup MLX Server files
+if [ -f ".mlx_server.pid" ]; then
+    rm .mlx_server.pid
+    echo -e "${GREEN}✓ MLX PID file removed${NC}"
+fi
+if [ -f ".mlx_server.log" ]; then
+    rm .mlx_server.log
+    echo -e "${GREEN}✓ MLX log file removed${NC}"
+fi
 
 # Summary
 echo -e "\n${GREEN}======================================"
