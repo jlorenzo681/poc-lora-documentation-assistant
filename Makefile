@@ -21,9 +21,8 @@ help:
 	@echo "  make shell        - Open shell in running container"
 	@echo "  make clean        - Clean up containers only"
 	@echo "  make clean-images - Clean up containers and images"
-	@echo "  make clean-volumes- Clean up containers and volumes (deletes Ollama models!)"
+	@echo "  make clean-volumes- Clean up containers and volumes"
 	@echo "  make clean-all    - Clean up everything (containers, images, volumes)"
-	@echo "  make pull-models  - Pull all Ollama models"
 	@echo "  make test         - Run tests"
 	@echo "  make lint         - Run linters"
 	@echo ""
@@ -84,9 +83,7 @@ clean-volumes:
 clean-all:
 	@./scripts/clean.sh --all
 
-# Pull Ollama models
-pull-models:
-	@./scripts/pull-ollama-models.sh --all
+
 
 # Run tests
 test:
