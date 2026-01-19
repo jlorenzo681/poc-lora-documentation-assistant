@@ -1,7 +1,7 @@
 [project]
 name = "poc-rag-chatbot-wiki"
 version = "0.1.0"
-description = "LoRA-Enhanced RAG Chatbot using MLX and LM Studio"
+description = "LoRA-Enhanced RAG Chatbot optimized for Apple Silicon using MLX and LM Studio"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
@@ -28,9 +28,7 @@ dependencies = [
     "langgraph>=0.0.10",
     "fasttext-wheel>=0.9.2",
     "langchain-experimental>=0.0.60",
-    "neo4j>=5.20.0",
     "json-repair>=0.25.0",
-    "streamlit-agraph>=0.0.45",
     "mlx>=0.21.0",
     "mlx-lm>=0.21.1",
     "datasets>=2.20.0",

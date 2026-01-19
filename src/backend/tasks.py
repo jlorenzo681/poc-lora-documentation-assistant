@@ -1,7 +1,7 @@
 from .celery_config import celery_app
 from src.chatbot.core.document_processor import DocumentProcessor
 from src.chatbot.core.vector_store_manager import VectorStoreManager
-from src.chatbot.core.graph_store_manager import GraphStoreManager
+
 import os
 import config.settings as settings
 
@@ -16,7 +16,7 @@ def process_document_task(self, file_path: str, api_key: str, embedding_type: st
         # 1. Initialize Managers
         # Note: We pass None for event_bus to avoid overhead
         vector_manager = VectorStoreManager(embedding_type=embedding_type)
-        graph_manager = GraphStoreManager(model_name=llm_model)
+
 
         # 2. Check Cache
         self.update_state(state='PROGRESS', meta={'status': 'Checking cache...'})
@@ -38,18 +38,7 @@ def process_document_task(self, file_path: str, api_key: str, embedding_type: st
         # This will create/cache the vector store (VSM handles language detection internally)
         vector_manager.create_vector_store(chunks, cache_key=file_hash)
         
-        # 5. Graph Extraction (if enabled)
-        # 5. Graph Extraction (if enabled)
-        if getattr(settings, "ENABLE_GRAPHRAG", False):
-            # Check cache using Manager (Clean Architecture)
-            if graph_manager.check_cache(file_hash):
-                self.update_state(state='PROGRESS', meta={'status': 'Graph data already cached. Skipping extraction.'})
-                print("✓ Graph data already cached. Skipping extraction.")
-            else:
-                self.update_state(state='PROGRESS', meta={'status': f'Extracting Graph data (this may take a while)...'})
-                graph_manager.add_documents_to_graph(chunks)
-                # Mark completion
-                graph_manager.mark_as_completed(file_hash)
+
         
         return {
             "status": "completed", 
