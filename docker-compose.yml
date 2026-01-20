@@ -13,6 +13,9 @@ services:
     environment:
       - REDIS_URL=redis://lora-redis:6380/0
       - LLM_BASE_URL=${LLM_BASE_URL:-http://host.docker.internal:8080/v1}
+      - LANGFUSE_SECRET_KEY=${LANGFUSE_SECRET_KEY}
+      - LANGFUSE_PUBLIC_KEY=${LANGFUSE_PUBLIC_KEY}
+      - LANGFUSE_HOST=http://langfuse-server:3000
     volumes:
       # Persistent data volumes
       - .:/app:z
@@ -52,6 +55,9 @@ services:
       - CELERY_RESULT_BACKEND=redis://lora-redis:6380/0
       - REDIS_URL=redis://lora-redis:6380/0
       - LLM_BASE_URL=${LLM_BASE_URL:-http://host.docker.internal:8080/v1}
+      - LANGFUSE_SECRET_KEY=${LANGFUSE_SECRET_KEY}
+      - LANGFUSE_PUBLIC_KEY=${LANGFUSE_PUBLIC_KEY}
+      - LANGFUSE_HOST=http://langfuse-server:3000
     ports:
       - "8001:8000"
     depends_on:
@@ -74,6 +80,9 @@ services:
       - CELERY_RESULT_BACKEND=redis://lora-redis:6380/0
       - REDIS_URL=redis://lora-redis:6380/0
       - LLM_BASE_URL=${LLM_BASE_URL:-http://host.docker.internal:8080/v1}
+      - LANGFUSE_SECRET_KEY=${LANGFUSE_SECRET_KEY}
+      - LANGFUSE_PUBLIC_KEY=${LANGFUSE_PUBLIC_KEY}
+      - LANGFUSE_HOST=http://langfuse-server:3000
     depends_on:
       - lora-redis
     networks:
@@ -91,9 +100,42 @@ services:
     volumes:
       - lora-redis-data:/data
 
+  langfuse-server:
+    image: langfuse/langfuse:2
+    depends_on:
+      langfuse-db:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@langfuse-db:5432/postgres
+      - NEXTAUTH_URL=http://localhost:3000
+      - NEXTAUTH_SECRET=mysecret
+      - SALT=mysalt
+    networks:
+      - lora-network
+
+  langfuse-db:
+    image: postgres:16
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=postgres
+    volumes:
+      - langfuse-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - lora-network
+
 networks:
   lora-network:
     driver: bridge
 
 volumes:
   lora-redis-data:
+  langfuse-db-data:

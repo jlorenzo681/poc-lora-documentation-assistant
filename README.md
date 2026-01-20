@@ -13,6 +13,7 @@ A Retrieval Augmented Generation (RAG) chatbot optimized for Apple Silicon using
 -   **RAG Architecture**: Upload documents to create a knowledge base and ask questions about them.
 -   **LoRA Support**: Architecture ready for integrating Low-Rank Adaptation (LoRA) fine-tuned adapters.
 -   **Flexible Embeddings**: Default local embeddings via HuggingFace (MiniLM), with support for LM Studio.
+-   **Observability**: Integrated **Langfuse** for tracing, cost monitoring, and LLM debugging.
 
 ## Documentation
 

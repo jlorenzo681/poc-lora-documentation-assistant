@@ -59,10 +59,10 @@ fi
 # Stop and remove containers using compose if available
 echo -e "\n${YELLOW}Stopping and removing containers...${NC}"
 if command -v docker-compose &> /dev/null; then
-    docker-compose -p rag-fresh down 2>/dev/null || true
+    docker-compose down 2>/dev/null || true
     echo -e "${GREEN}✓ Containers stopped via docker-compose${NC}"
 elif docker compose version &> /dev/null; then
-    docker compose -p rag-fresh down 2>/dev/null || true
+    docker compose down 2>/dev/null || true
     echo -e "${GREEN}✓ Containers stopped via docker compose${NC}"
 else
     # Manual removal
@@ -115,12 +115,14 @@ fi
 if [ "$REMOVE_VOLUMES" = true ]; then
     echo -e "\n${YELLOW}Removing volumes...${NC}"
 
-    if docker volume inspect poc-lora-documentation-assistant_lora-redis-data >/dev/null 2>&1; then
-        docker volume rm poc-lora-documentation-assistant_lora-redis-data 2>/dev/null || true
-        echo -e "${GREEN}✓ Redis data volume removed${NC}"
-    else
-        echo -e "${YELLOW}⚠ Redis data volume not found (check project prefix)${NC}"
-    fi
+    for volume in poc-lora-documentation-assistant_lora-redis-data poc-lora-documentation-assistant_langfuse-db-data poc-lora-documentation-assistant_clickhouse-data poc-lora-documentation-assistant_clickhouse-logs; do
+        if docker volume inspect $volume >/dev/null 2>&1; then
+            docker volume rm $volume 2>/dev/null || true
+            echo -e "${GREEN}✓ Volume $volume removed${NC}"
+        else
+            echo -e "${YELLOW}⚠ Volume $volume not found${NC}"
+        fi
+    done
 else
     echo -e "\n${YELLOW}⚠ Volumes kept (use --volumes flag to remove)${NC}"
 fi

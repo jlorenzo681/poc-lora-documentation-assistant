@@ -12,6 +12,7 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain.chains import create_retrieval_chain
 from langchain.chains.combine_documents import create_stuff_documents_chain
 import time
+from langfuse.callback import CallbackHandler
 from .events.event_bus import EventBus, ChatQueryEvent, ChatResponseEvent, ErrorEvent
 import config.settings as settings
 
@@ -40,6 +41,7 @@ Use the context provided to answer questions accurately and comprehensively.
         self.retriever = retriever
         self.system_prompt = system_prompt or self.DEFAULT_SYSTEM_PROMPT
         self.llm_provider = llm_provider
+        self.langfuse_handler = None
 
         # Initialize LLM based on provider
         # Initialize LLM using Factory
@@ -103,6 +105,16 @@ Use the context provided to answer questions accurately and comprehensively.
         Answer:"""
         qa_prompt = PromptTemplate.from_template(qa_template)
 
+        # Initialize Langfuse Handler if configured
+        callbacks = []
+        if settings.LANGFUSE_PUBLIC_KEY and settings.LANGFUSE_SECRET_KEY:
+            try:
+                self.langfuse_handler = CallbackHandler()
+                callbacks.append(self.langfuse_handler)
+                print(f"✓ Langfuse initialized (Host: {settings.LANGFUSE_HOST})")
+            except Exception as e:
+                print(f"⚠ Langfuse initialization failed: {e}")
+
         conversational_chain = ConversationalRetrievalChain.from_llm(
             llm=self.llm,
             retriever=self.retriever,
@@ -110,7 +122,8 @@ Use the context provided to answer questions accurately and comprehensively.
             return_source_documents=True,
             verbose=False,
             condense_question_prompt=condense_question_prompt,
-            combine_docs_chain_kwargs={"prompt": qa_prompt}
+            combine_docs_chain_kwargs={"prompt": qa_prompt},
+            callbacks=callbacks
         )
 
         print("✓ Conversational LoRA chain created")
@@ -127,12 +140,14 @@ class LoRAChatbot:
         chain,
         return_sources: bool = True,
         event_bus: Optional[EventBus] = None,
-        event_metadata: Optional[Dict[str, Any]] = None
+        event_metadata: Optional[Dict[str, Any]] = None,
+        langfuse_handler: Optional[Any] = None
     ):
         self.chain = chain
         self.return_sources = return_sources
         self.event_bus = event_bus
         self.event_metadata = event_metadata or {}
+        self.langfuse_handler = langfuse_handler
 
     def ask(self, question: str) -> Dict[str, Any]:
         try:
@@ -146,9 +161,15 @@ class LoRAChatbot:
                 ))
 
             if hasattr(self.chain, 'memory'):
-                response = self.chain({"question": question})
+                callbacks = [self.langfuse_handler] if self.langfuse_handler else []
+                response = self.chain({"question": question}, callbacks=callbacks)
             else:
-                response = self.chain.invoke({"input": question})
+                callbacks = [self.langfuse_handler] if self.langfuse_handler else []
+                response = self.chain.invoke({"input": question}, config={"callbacks": callbacks})
+
+            # Explicitly flush traces (required for Langfuse v2)
+            if self.langfuse_handler:
+                self.langfuse_handler.flush()
 
             result = {
                 "question": question,

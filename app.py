@@ -90,7 +90,8 @@ def initialize_chatbot():
         
         st.session_state.chatbot = LoRAChatbot(
             chain=conversational_chain,
-            return_sources=True
+            return_sources=True,
+            langfuse_handler=chain.langfuse_handler
         )
         # st.toast(f"Initialized with {provider.upper()}")
         logger.info("Chatbot initialization successful")

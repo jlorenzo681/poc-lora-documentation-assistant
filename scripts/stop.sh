@@ -26,21 +26,16 @@ COMPOSE_FILE="docker-compose.yml"
 # Check if docker-compose is available and use correct command
 if command -v docker-compose &> /dev/null; then
     echo "Using docker-compose..."
-    docker-compose -f $COMPOSE_FILE -p rag-fresh down
+    echo "Using docker-compose..."
+    docker-compose -f $COMPOSE_FILE down
 elif docker compose version &> /dev/null; then
     echo "Using docker compose plugin..."
-    docker compose -f $COMPOSE_FILE -p rag-fresh down
+    docker compose -f $COMPOSE_FILE down
 else
     # Manual stop - stop both containers
     echo "Stopping containers manually..."
-    docker stop lora-chatbot 2>/dev/null || true
-    docker stop lora-backend 2>/dev/null || true
-    docker stop lora-worker 2>/dev/null || true
-    docker stop lora-redis 2>/dev/null || true
-    docker rm lora-chatbot 2>/dev/null || true
-    docker rm lora-backend 2>/dev/null || true
-    docker rm lora-worker 2>/dev/null || true
-    docker rm lora-redis 2>/dev/null || true
+    docker stop lora-chatbot lora-backend lora-worker lora-redis langfuse-server langfuse-db 2>/dev/null || true
+    docker rm lora-chatbot lora-backend lora-worker lora-redis langfuse-server langfuse-db 2>/dev/null || true
 fi
 
 echo "✓ All services stopped"

@@ -12,6 +12,8 @@ elif [ "$1" = "worker" ]; then
     CONTAINER="lora-worker"
 elif [ "$1" = "redis" ]; then
     CONTAINER="lora-redis"
+elif [ "$1" = "langfuse" ]; then
+    CONTAINER="poc-lora-documentation-assistant-langfuse-server-1"
 elif [ "$1" = "mlx" ]; then
     if [ -f ".mlx_server.log" ]; then
         echo "Viewing MLX Server logs (Ctrl+C to exit)..."

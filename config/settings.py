@@ -29,7 +29,13 @@ DEFAULT_EMBEDDING_TYPE: str = "huggingface"  # Options: "huggingface", "lmstudio
 # Dynamic Embedding Models
 EMBEDDING_MODEL_EN: str = "nomic-ai/nomic-embed-text-v1.5-GGUF" # High quality English model (LM Studio)
 EMBEDDING_MODEL_MULTILINGUAL: str = "text-embedding-bge-m3"   # High quality Multilingual model (LM Studio)
+EMBEDDING_MODEL_MULTILINGUAL: str = "text-embedding-bge-m3"   # High quality Multilingual model (LM Studio)
 FASTTEXT_MODEL_PATH: str = "data/models/lid.176.ftz"
+
+# Langfuse Settings
+LANGFUSE_SECRET_KEY = os.getenv("LANGFUSE_SECRET_KEY")
+LANGFUSE_PUBLIC_KEY = os.getenv("LANGFUSE_PUBLIC_KEY")
+LANGFUSE_HOST = os.getenv("LANGFUSE_HOST", "https://cloud.langfuse.com")
 
 # LoRA Settings (Training)
 ENABLE_LORA: bool = True

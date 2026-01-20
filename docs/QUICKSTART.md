@@ -32,6 +32,7 @@ Visit **http://localhost:8501** in your browser.
 2.  **Upload Document**: Drag & drop a PDF, Markdown, or Text file.
 3.  **Process**: Click "Process Document" to create the knowledge base.
 4.  **Chat**: Ask questions about your document!
+5.  **Observe**: Check your traces at **http://localhost:3000** (Langfuse).
 
 ## 💡 Configuration Tips
 -   **Model Selection**: The chatbot uses whatever model is loaded in LM Studio.

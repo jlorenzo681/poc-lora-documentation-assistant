@@ -15,7 +15,7 @@ dependencies = [
     "pypdf==4.3.1",
     "pypdf2==3.0.1",
     "python-dotenv==1.0.1",
-    "sentence-transformers==3.0.1",
+    "sentence-transformers>=2.2.2",
     "streamlit==1.39.0",
     "redis>=5.0.0",
     "tiktoken==0.7.0",
@@ -32,6 +32,7 @@ dependencies = [
     "mlx>=0.21.0",
     "mlx-lm>=0.21.1",
     "datasets>=2.20.0",
+    "langfuse>=2.0.0,<3.0.0",
 ]
 
 [dependency-groups]

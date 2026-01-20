@@ -25,23 +25,24 @@ Since the chatbot relies on a local LLM server (LM Studio), the container needs 
     ```bash
     # Using Make
     make build
-    make deploy
-    
-    # Or manual
-    docker build -t rag-chatbot -f Containerfile .
-    docker run -d -p 8502:8501 --add-host=host.docker.internal:host-gateway --env-file .env -v ./data:/app/data -v ./logs:/app/logs rag-chatbot
+    make deploy   # Starts chatbot + backend + worker + redis + langfuse
     ```
 
-    *Note: `--add-host=host.docker.internal:host-gateway` is crucial for Linux/Podman. Docker Desktop for Mac handles this automatically.*
+### Langfuse Observability Services
 
-### Method 2: Development Mode
+The deployment includes a full observability stack (self-hosted Langfuse v2):
+- **`langfuse-server`**: Access the UI at `http://localhost:3000`.
+- **`langfuse-db`**: PostgreSQL database for storing traces.
 
-To develop locally with hot-reloading:
+#### Volume Management
+Vector stores, uploaded documents, and Langfuse data are persisted using Docker volumes:
+- `langfuse-db-data`: Stores the Postgres database for Langfuse.
+- Local `./data` and `./logs` are mounted for application state.
 
+To perform a clean installation (removing all data and volumes):
 ```bash
-make dev
+make clean-all && make deploy
 ```
-(See `scripts/dev.sh` for details on how this mounts your local directory).
 
 ## Production Notes
 

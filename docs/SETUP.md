@@ -51,10 +51,31 @@ LLM_BASE_URL=http://localhost:1234/v1  # Point to your local LM Studio server
 # If you wish to use LM Studio for embeddings, set DEFAULT_EMBEDDING_TYPE="lmstudio" in config/settings.py
 
 MLX_MODEL_PATH=mlx-community/Mistral-7B-Instruct-v0.3-4bit
+MLX_ADAPTER_PATH=data/adapters
 
+# Langfuse Observability
+LANGFUSE_HOST=http://localhost:3000
+LANGFUSE_PUBLIC_KEY=pk-lf-...
+LANGFUSE_SECRET_KEY=sk-lf-...
 ```
 
-### 5. Start LM Studio Server
+### 5. Start Langfuse (Optional but recommended)
+
+This project includes a self-hosted Langfuse v2 instance for observability. To set it up:
+
+1.  **Start the services**: 
+    ```bash
+    make deploy
+    ```
+2.  **Access the Dashboard**: Open your browser to `http://localhost:3000`.
+3.  **Create Account & Project**: Sign up (local) and create a new project.
+4.  **Get API Keys**: Go to Project Settings -> API Keys and copy the Public and Secret keys.
+5.  **Update `.env`**: Paste the keys into your `.env` file and restart the chatbot:
+    ```bash
+    docker restart lora-chatbot
+    ```
+
+### 6. Start LM Studio Server
 
 1.  Open **LM Studio**.
 2.  Go to the **Local Server** tab (double-headed arrow icon).
