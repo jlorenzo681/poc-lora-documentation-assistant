@@ -8,7 +8,7 @@ from langchain_core.documents import Document
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from langgraph.graph import StateGraph, END
-from .vector_store_manager import VectorStoreManager
+from .storage.vector_store_manager import VectorStoreManager
 from .lora_chain import LoRAChain
 
 class LoRAState(TypedDict):

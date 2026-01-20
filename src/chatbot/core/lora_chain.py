@@ -12,7 +12,7 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain.chains import create_retrieval_chain
 from langchain.chains.combine_documents import create_stuff_documents_chain
 import time
-from .event_bus import EventBus, ChatQueryEvent, ChatResponseEvent, ErrorEvent
+from .events.event_bus import EventBus, ChatQueryEvent, ChatResponseEvent, ErrorEvent
 import config.settings as settings
 
 class LoRAChain:
@@ -42,60 +42,16 @@ Use the context provided to answer questions accurately and comprehensively.
         self.llm_provider = llm_provider
 
         # Initialize LLM based on provider
-        # Initialize LLM based on provider
-        if llm_provider == "mlx":
-            try:
-                # Try to load local MLX
-                from .mlx_llm import MLXChatModel
-                
-                model_path = getattr(settings, "MLX_MODEL_PATH", None)
-                adapter_path = getattr(settings, "MLX_ADAPTER_PATH", None)
-                
-                if not model_path:
-                    print("⚠ MLX Model Path not set in settings, attempting default")
-                
-                self.llm = MLXChatModel(
-                    model_path=model_path,
-                    adapter_path=adapter_path,
-                    temperature=temperature,
-                    max_tokens=max_tokens
-                )
-                print(f"⚡ Initialized MLX LoRA LLM (Local)")
-                print(f"   Model: {model_path}")
-                print(f"   Adapters: {adapter_path}")
-                
-            except ImportError:
-                print("⚠ 'mlx_lm' not found. Assuming Docker/Client mode.")
-                print("🔄 Connecting to MLX Server on Host...")
-                
-                from langchain_openai import ChatOpenAI
-                # Use MLX_SERVER_BASE_URL from settings, or fallback to localhost if not set
-                mlx_base_url = getattr(settings, "MLX_SERVER_BASE_URL", "http://host.docker.internal:8080/v1")
-                
-                self.llm = ChatOpenAI(
-                    base_url=mlx_base_url,
-                    api_key="mlx",
-                    model=model_name,
-                    temperature=temperature,
-                    max_tokens=max_tokens,
-                    timeout=300.0,
-                )
-                print(f"📡 Initialized MLX Client for Server: {mlx_base_url}")
-
-        elif llm_provider == "lmstudio":
-             from langchain_openai import ChatOpenAI
-             self.llm = ChatOpenAI(
-                base_url=lmstudio_base_url,
-                api_key="lm-studio",
-                model=model_name,
-                temperature=temperature,
-                max_tokens=max_tokens,
-                timeout=300.0,
-            )
-             print(f"🤖 Initialized LM Studio LLM: {model_name}")
-
-        else:
-            raise ValueError(f"Unsupported LLM provider: {llm_provider}")
+        # Initialize LLM using Factory
+        from .factories.llm_factory import LLMFactory
+        
+        self.llm = LLMFactory.create_llm(
+            provider=llm_provider,
+            model_name=model_name,
+            temperature=temperature,
+            max_tokens=max_tokens,
+            lmstudio_base_url=lmstudio_base_url
+        )
 
     def create_conversational_chain(
         self,

@@ -187,3 +187,5 @@ data/.DS_Store
 src/.DS_Store
 src/chatbot/core/.DS_Store
 src/chatbot/.DS_Store
+
+.mlx_server*

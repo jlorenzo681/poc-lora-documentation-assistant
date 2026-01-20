@@ -113,15 +113,23 @@ MLX_SERVER_LOG=".mlx_server.log"
 
 if [ "$LLM_PROVIDER" = "mlx" ] || [ -z "$LLM_PROVIDER" ]; then
     echo -e "\n${YELLOW}Starting MLX Server...${NC}"
-    if [ -f "$MLX_SERVER_PID_FILE" ]; then
+    MLX_ALREADY_RUNNING=false
+
+    # 1. Check by port (most reliable)
+    if curl -s http://localhost:8080/v1/models >/dev/null; then
+        echo -e "${GREEN}✓ MLX Server detected running on port 8080${NC}"
+        MLX_ALREADY_RUNNING=true
+    # 2. Check by PID file
+    elif [ -f "$MLX_SERVER_PID_FILE" ]; then
         if ps -p $(cat "$MLX_SERVER_PID_FILE") > /dev/null; then
             echo -e "${GREEN}✓ MLX Server already running (PID: $(cat "$MLX_SERVER_PID_FILE"))${NC}"
+            MLX_ALREADY_RUNNING=true
         else
             rm "$MLX_SERVER_PID_FILE"
         fi
     fi
 
-    if [ ! -f "$MLX_SERVER_PID_FILE" ]; then
+    if [ "$MLX_ALREADY_RUNNING" = false ]; then
         # Determine Python interpreter
         if [ -f ".venv/bin/python" ]; then
             PYTHON_CMD=".venv/bin/python"

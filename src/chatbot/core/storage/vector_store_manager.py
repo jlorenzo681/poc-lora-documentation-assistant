@@ -14,8 +14,9 @@ import os
 import hashlib
 import fasttext
 import sys
-from .event_bus import EventBus, VectorStoreUpdateEvent
+from ..events.event_bus import EventBus, VectorStoreUpdateEvent
 import config.settings as settings
+from ..factories.embedding_factory import EmbeddingFactory
 
 
 class VectorStoreManager:
@@ -77,70 +78,7 @@ class VectorStoreManager:
             print(f"⚠ Language detection failed: {e}")
             return 'en'
 
-    def _get_embeddings_for_language(self, language_code: str) -> Embeddings:
-        """
-        Get the appropriate embedding model for the detected language.
-        
-        Args:
-            language_code: Detected language code
-            
-        Returns:
-            Embeddings instance
-        """
-        if self.embedding_type:
-            embedding_type = self.embedding_type
-        else:
-            embedding_type = getattr(settings, "DEFAULT_EMBEDDING_TYPE", "lmstudio")
-
-        if embedding_type == "huggingface":
-            # Use local HuggingFace embeddings (sentence-transformers)
-            # Default to a good multilingual model if language is not English, or standard one for English
-            # But specific models in settings might be Ollama-specific names. 
-            # We'll use a standard variable or hardcoded defaults for HF to be safe/simple for now.
-            if language_code == 'en':
-                model_name = "sentence-transformers/all-MiniLM-L6-v2"
-            else:
-                model_name = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
-            
-            print(f"🔧 Selecting HuggingFace embedding model: {model_name}")
-            return HuggingFaceEmbeddings(
-                model_name=model_name,
-                model_kwargs={'device': 'cpu'}, # Use 'mps' if sure about Mac, but 'cpu' is safest fallback
-                encode_kwargs={'normalize_embeddings': True}
-            )
-
-        elif embedding_type in ["lmstudio", "mlx"]:
-             # Use LM Studio's embedding endpoint (OpenAI compatible)
-             # MLX usually provides an OpenAI compatible endpoint as well
-             from langchain_openai import OpenAIEmbeddings
-             base_url = getattr(settings, "LLM_BASE_URL", "http://host.docker.internal:1234/v1")
-             if language_code == 'en':
-                 model_name = settings.EMBEDDING_MODEL_EN
-             else:
-                 model_name = settings.EMBEDDING_MODEL_MULTILINGUAL
-
-             print(f"🔧 Selecting {embedding_type.upper()} embedding endpoint: {base_url} with model {model_name}")
-             
-             return OpenAIEmbeddings(
-                 base_url=base_url,
-                 api_key="lm-studio",
-                 model=model_name, # Identifier often ignored by LM Studio, but good practice
-                 check_embedding_ctx_length=False 
-             )
-        
-        else:
-            # Default to Ollama
-            if language_code == 'en':
-                model_name = settings.EMBEDDING_MODEL_EN
-                print(f"🔧 Selecting English embedding model: {model_name}")
-            else:
-                model_name = settings.EMBEDDING_MODEL_MULTILINGUAL
-                print(f"🔧 Selecting Multilingual embedding model ({language_code}): {model_name}")
-
-            return OllamaEmbeddings(
-                model=model_name,
-                base_url=os.getenv("OLLAMA_BASE_URL", "http://host.docker.internal:11434")
-            )
+    # _get_embeddings_for_language removed: Logic moved to EmbeddingFactory
 
     def get_file_hash(self, file_path: str) -> str:
         """
@@ -162,7 +100,10 @@ class VectorStoreManager:
         
         # Initialize appropriate embeddings
         # Initialize appropriate embeddings
-        self.embeddings = self._get_embeddings_for_language(language)
+        self.embeddings = EmbeddingFactory.get_embedding_model(
+            embedding_type=self.embedding_type, 
+            language_code=language
+        )
 
         # Helper to get the model name being used
         current_model_name = "default"
@@ -248,7 +189,7 @@ class VectorStoreManager:
                     suffix = candidates[0].split('_')[-1]
                     if suffix in ['en', 'es', 'fr', 'de']: # List of likely codes
                         print(f"ℹ️ Inferred language '{suffix}' from directory name.")
-                        self.embeddings = self._get_embeddings_for_language(suffix)
+                        self.embeddings = EmbeddingFactory.get_embedding_model(self.embedding_type, suffix)
                 else:
                     raise FileNotFoundError(f"Vector store not found at: {path}")
             else:
@@ -258,7 +199,7 @@ class VectorStoreManager:
         # Ideally, we should detect or store metadata. For now, if not set, default to Multilingual as safest.
         if not hasattr(self, 'embeddings') or self.embeddings is None:
              print("⚠ Embeddings not initialized, defaulting to Multilingual for load.")
-             self.embeddings = self._get_embeddings_for_language("es") # Fallback
+             self.embeddings = EmbeddingFactory.get_embedding_model(self.embedding_type, "es") # Fallback
 
         print(f"📂 Loading vector store from: {path}")
         self.vector_store = FAISS.load_local(

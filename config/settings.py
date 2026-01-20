@@ -24,7 +24,7 @@ DEFAULT_CHUNK_SIZE: int = 1000
 DEFAULT_CHUNK_OVERLAP: int = 200
 
 # Embedding Settings
-DEFAULT_EMBEDDING_TYPE: str = "lmstudio"  # Options: "huggingface", "lmstudio", "mlx"
+DEFAULT_EMBEDDING_TYPE: str = "huggingface"  # Options: "huggingface", "lmstudio", "mlx"
 
 # Dynamic Embedding Models
 EMBEDDING_MODEL_EN: str = "nomic-ai/nomic-embed-text-v1.5-GGUF" # High quality English model (LM Studio)
@@ -47,6 +47,7 @@ DEFAULT_LLM_PROVIDER: str = "lmstudio"
 LLM_PROVIDER = os.getenv("LLM_PROVIDER", "mlx") # Options: "mlx", "lmstudio"
 DEFAULT_LLM_PROVIDER = "mlx" 
 LM_STUDIO_URL = os.getenv("LLM_BASE_URL", "http://host.docker.internal:8080/v1") # Default to MLX Server for Docker
+LLM_BASE_URL = LM_STUDIO_URL # Alias for compatibility
 
 # MLX Specifics (for local training/inference)
 MLX_MODEL_PATH = os.getenv("MLX_MODEL_PATH", "mlx-community/Mistral-7B-Instruct-v0.3-4bit")

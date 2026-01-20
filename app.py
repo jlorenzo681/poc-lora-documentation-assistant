@@ -10,9 +10,10 @@ import time
 
 # Internal imports
 from src.chatbot.core.lora_chain import LoRAChain, LoRAChatbot
-from src.chatbot.core.vector_store_manager import VectorStoreManager
-from src.chatbot.core.document_processor import DocumentProcessor
-from src.chatbot.core.event_bus import EventBus, Event
+from src.chatbot.core.storage.vector_store_manager import VectorStoreManager
+from src.chatbot.core.processing.document_processor import DocumentProcessor
+from src.chatbot.core.events.event_bus import EventBus, Event
+from src.chatbot.core.factories.logger_factory import LoggerFactory
 from config import settings
 
 # Page Config
@@ -32,6 +33,11 @@ def initialize_session_state():
     if "processing" not in st.session_state:
         st.session_state.processing = False
     
+    # Initialize Logging once
+    if "logger_initialized" not in st.session_state:
+        LoggerFactory.setup_global_file_logger()
+        st.session_state.logger_initialized = True
+    
     # Initialize Managers
     if "vector_store_manager" not in st.session_state:
         st.session_state.vector_store_manager = VectorStoreManager()
@@ -50,12 +56,18 @@ def initialize_session_state():
             vector_store_manager=st.session_state.vector_store_manager
         )
 
+# Logger for the app
+logger = LoggerFactory.get_logger("streamlit_app")
+
 # --- Init Chatbot ---
 def initialize_chatbot():
     """Initialize the chatbot logic."""
     try:
         # Default to settings default
         provider = st.session_state.get("llm_provider", settings.DEFAULT_LLM_PROVIDER)
+        model_name = settings.MLX_MODEL_PATH
+        
+        logger.info(f"Initializing Chatbot with Provider: {provider}, Model: {model_name}")
         
         # Get Retriever
         try:
@@ -70,7 +82,7 @@ def initialize_chatbot():
             retriever=retriever,
             llm_provider=provider,
             lmstudio_base_url=settings.LM_STUDIO_URL,
-            model_name=settings.MLX_MODEL_PATH,
+            model_name=model_name,
             temperature=0.1
         )
         
@@ -81,6 +93,7 @@ def initialize_chatbot():
             return_sources=True
         )
         # st.toast(f"Initialized with {provider.upper()}")
+        logger.info("Chatbot initialization successful")
         return True
         
     except Exception as e:
