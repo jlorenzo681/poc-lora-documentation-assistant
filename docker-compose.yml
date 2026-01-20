@@ -108,10 +108,10 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - DATABASE_URL=postgresql://postgres:postgres@langfuse-db:5432/postgres
-      - NEXTAUTH_URL=http://localhost:3000
-      - NEXTAUTH_SECRET=mysecret
-      - SALT=mysalt
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@langfuse-db:5432/${POSTGRES_DB:-postgres}
+      - NEXTAUTH_URL=${NEXTAUTH_URL:-http://localhost:3000}
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET:-mysecret_change_me}
+      - SALT=${SALT:-mysalt_change_me}
     networks:
       - lora-network
 
@@ -119,9 +119,9 @@ services:
     image: postgres:16
     restart: always
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=postgres
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - POSTGRES_DB=${POSTGRES_DB:-postgres}
     volumes:
       - langfuse-db-data:/var/lib/postgresql/data
     healthcheck:
