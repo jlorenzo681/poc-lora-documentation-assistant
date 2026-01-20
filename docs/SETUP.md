@@ -45,9 +45,13 @@ Edit `.env` to ensure it points to your local LM Studio instance:
 
 ```bash
 # .env content
-LLM_PROVIDER=lmstudio
-LLM_BASE_URL=http://localhost:1234/v1  # or http://host.docker.internal:1234/v1 for Docker w/ Host limits
+LLM_PROVIDER=lmstudio  # or 'mlx'
+LLM_BASE_URL=http://localhost:1234/v1  # Point to your local LM Studio server
+# Embeddings are now calculated locally using HuggingFace by default.
+# If you wish to use LM Studio for embeddings, set DEFAULT_EMBEDDING_TYPE="lmstudio" in config/settings.py
+
 MLX_MODEL_PATH=mlx-community/Mistral-7B-Instruct-v0.3-4bit
+
 ```
 
 ### 5. Start LM Studio Server
@@ -73,13 +77,17 @@ The app will open in your browser at `http://localhost:8501`.
 ```
 poc-lora-documentation-assistant/
 ├── src/chatbot/          # Main application package
-│   ├── core/            # Core modules (processing, vector store, RAG)
+│   ├── core/            # Core modules
+│   │   ├── events/      # Event handling (EventBus)
+│   │   ├── factories/   # Object factories (LLM, Embedding, Loader, Logger)
+│   │   ├── processing/  # Document processing and chunking
+│   │   └── storage/     # Vector and Graph store managers
 │   └── utils/           # Utility functions
 ├── config/              # Configuration and settings
 ├── data/               # Runtime data (documents, vector stores)
 │   ├── documents/       # Uploaded source files
 │   └── vector_stores/   # Generated FAISS indices
-├── logs/               # Application logs
+├── logs/               # Application logs (Session and Task logs)
 ├── app.py             # Streamlit web interface
 └── pyproject.toml     # Project metadata and dependencies
 ```

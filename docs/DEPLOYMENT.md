@@ -13,11 +13,13 @@ Since the chatbot relies on a local LLM server (LM Studio), the container needs 
 ### Method 1: Connecting to Host LM Studio
 
 1.  **Configure `.env`**:
-    Ensure the Base URL points to the special host DNS for Docker containers:
-    ```bash
-    LLM_PROVIDER=lmstudio
-    LLM_BASE_URL=http://host.docker.internal:1234/v1
-    ```
+    *   **External LLM (LM Studio)**:
+        ```bash
+        LLM_PROVIDER=lmstudio
+        LLM_BASE_URL=http://host.docker.internal:1234/v1
+        ```
+    *   **Internal MLX Server (Default)**:
+        If using `LLM_PROVIDER=mlx` (default), the deployment script (`make deploy`) automatically starts an MLX server on the host (port 8080) and configures the container to connect to it via `http://host.docker.internal:8080/v1`.
 
 2.  **Build & Run**:
     ```bash
@@ -27,7 +29,7 @@ Since the chatbot relies on a local LLM server (LM Studio), the container needs 
     
     # Or manual
     docker build -t rag-chatbot -f Containerfile .
-    docker run -d -p 8501:8501 --add-host=host.docker.internal:host-gateway --env-file .env -v ./data:/app/data rag-chatbot
+    docker run -d -p 8502:8501 --add-host=host.docker.internal:host-gateway --env-file .env -v ./data:/app/data -v ./logs:/app/logs rag-chatbot
     ```
 
     *Note: `--add-host=host.docker.internal:host-gateway` is crucial for Linux/Podman. Docker Desktop for Mac handles this automatically.*
