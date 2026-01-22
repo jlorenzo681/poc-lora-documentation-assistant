@@ -5,7 +5,7 @@ set -e
 
 # Parse arguments
 # Parse arguments
-CONTAINER="lora-chatbot"
+CONTAINER="lora-frontend"
 if [ "$1" = "backend" ]; then
     CONTAINER="lora-backend"
 elif [ "$1" = "worker" ]; then
@@ -38,9 +38,9 @@ elif [ "$1" = "all" ]; then
         docker-compose logs -f
         exit 0
     else
-        echo "Error: docker-compose not available. Showing lora-chatbot logs only."
+        echo "Error: docker-compose not available. Showing lora-frontend logs only."
         echo "Usage: $0 [backend|worker|redis|mlx|all]"
-        echo "Default: lora-chatbot"
+        echo "Default: lora-frontend"
     fi
 fi
 

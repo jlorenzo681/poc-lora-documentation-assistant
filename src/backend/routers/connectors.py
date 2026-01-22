@@ -149,43 +149,23 @@ def oauth_callback(provider: str, code: str, redirect_uri: str, state: str):
     # State is the connector_id
     connector_id = state
     
-    # This involves making a request to Google to get tokens
-    # Then updating the 'oauth_credentials' field in the DB for the given connector_id
-    
-    # Mock implementation for now unless we want full flow
-    # In a real impl, we'd use flow.fetch_token(code=code)
-    
     logger.info(f"Received OAuth code for {provider} connector {connector_id}")
-    
-    # Simulate saving token
-    mock_creds = {
-        "token": "mock_access_token_" + code[:5],
-        "refresh_token": "mock_refresh_token",
-        "token_uri": "https://oauth2.googleapis.com/token",
-        "client_id": os.getenv("GOOGLE_CLIENT_ID"),
-        "client_secret": os.getenv("GOOGLE_CLIENT_SECRET"),
-        "scopes": ["https://www.googleapis.com/auth/drive.readonly"]
-    }
-    
-    conn = get_db_connection()
-    try:
-        with conn.cursor() as cur:
-            cur.execute(
-                "UPDATE connectors SET oauth_credentials = %s WHERE id = %s",
-                (json.dumps(mock_creds), connector_id)
-            )
-            if cur.rowcount == 0:
-                 raise HTTPException(status_code=404, detail="Connector found for state")
-            conn.commit()
-        return {"status": "success", "message": "Authenticated successfully. You can close this window."}
+
+    mock_creds = {}
+
+    if provider == "google_drive":
+        # Simulate saving token for Google
+        mock_creds = {
+            "token": "mock_access_token_" + code[:5],
+            "refresh_token": "mock_refresh_token",
+            "token_uri": "https://oauth2.googleapis.com/token",
+            "client_id": os.getenv("GOOGLE_CLIENT_ID"),
+            "client_secret": os.getenv("GOOGLE_CLIENT_SECRET"),
+            "scopes": ["https://www.googleapis.com/auth/drive.readonly"]
+        }
     
     elif provider == "onedrive":
-        # Exchange code for tokens using MSAL
-        connector_id = state
-        
-        logger.info(f"Received OAuth code for OneDrive connector {connector_id}")
-        
-        # For now, mock implementation (real implementation would use MSAL)
+        # Simulate saving token for OneDrive
         mock_creds = {
             "access_token": "mock_access_token_" + code[:5],
             "refresh_token": "mock_refresh_token",
@@ -194,20 +174,26 @@ def oauth_callback(provider: str, code: str, redirect_uri: str, state: str):
             "client_secret": os.getenv("MICROSOFT_CLIENT_SECRET"),
             "scope": ["Files.Read.All"]
         }
-        
-        conn = get_db_connection()
-        try:
-            with conn.cursor() as cur:
-                cur.execute(
-                    "UPDATE connectors SET oauth_credentials = %s WHERE id = %s",
-                    (json.dumps(mock_creds), connector_id)
-                )
-                if cur.rowcount == 0:
-                    raise HTTPException(status_code=404, detail="Connector not found for state")
-                conn.commit()
-            return {"status": "success", "message": "Authenticated successfully. You can close this window."}
-        finally:
-            conn.close()
+    
+    else:
+         raise HTTPException(status_code=400, detail="Unsupported provider")
+    
+    # Save credentials to DB
+    conn = get_db_connection()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                "UPDATE connectors SET oauth_credentials = %s WHERE id = %s",
+                (json.dumps(mock_creds), connector_id)
+            )
+            if cur.rowcount == 0:
+                 raise HTTPException(status_code=404, detail="Connector not found for state")
+            conn.commit()
+        return {"status": "success", "message": "Authenticated successfully. You can close this window."}
+    except Exception as e:
+        conn.rollback()
+        logger.error(f"Error saving credentials: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
     finally:
         conn.close()
 

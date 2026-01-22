@@ -74,7 +74,7 @@ This project includes a self-hosted Langfuse v2 instance for observability. To s
 4.  **Get API Keys**: Go to Project Settings -> API Keys and copy the Public and Secret keys.
 5.  **Update `.env`**: Paste the keys into your `.env` file and restart the chatbot:
     ```bash
-    docker restart lora-chatbot
+    docker restart lora-frontend
     ```
 
 ### 6. Start LM Studio Server

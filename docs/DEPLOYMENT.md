@@ -47,7 +47,7 @@ Since the chatbot relies on a local LLM server (LM Studio), the container needs 
 
 The deployment includes the following services:
 
-- **`lora-chatbot`**: Streamlit frontend at `http://localhost:8502`.
+- **`lora-frontend`**: Streamlit frontend at `http://localhost:8502`.
 - **`lora-backend`**: FastAPI REST API at `http://localhost:8001/docs`.
 - **`lora-celery_worker`**: Background task processor for document ingestion.
 - **`lora-celery_beat`**: Scheduler for periodic connector syncs (every 15 minutes).

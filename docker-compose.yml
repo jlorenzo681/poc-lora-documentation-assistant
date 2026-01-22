@@ -8,18 +8,19 @@ x-common-env: &common-env
   LANGFUSE_HOST: http://langfuse-server:3000
 
 services:
-  lora-chatbot:
+  lora-frontend:
     image: lora-frontend:latest
     build:
       context: .
       dockerfile: Containerfile
       target: frontend
-    container_name: lora-chatbot
+    container_name: lora-frontend
     user: "${UID:-1000}:${GID:-1000}"
     ports:
       - "8502:8501"
     environment:
       <<: *common-env
+      API_BASE_URL: http://lora-backend:8000
     volumes:
       # Persistent data volumes (development mounts)
       - .:/app:z
@@ -149,6 +150,7 @@ services:
 
   langfuse-server:
     image: langfuse/langfuse:2
+    container_name: langfuse-server
     depends_on:
       shared-db:
         condition: service_healthy

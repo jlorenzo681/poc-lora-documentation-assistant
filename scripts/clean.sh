@@ -66,10 +66,10 @@ elif docker compose version &> /dev/null; then
     echo -e "${GREEN}✓ Containers stopped via docker compose${NC}"
 else
     # Manual removal
-    if docker ps -a | grep -q lora-chatbot; then
-        docker stop lora-chatbot 2>/dev/null || true
-        docker rm lora-chatbot 2>/dev/null || true
-        echo -e "${GREEN}✓ lora-chatbot container removed${NC}"
+    if docker ps -a | grep -q lora-frontend; then
+        docker stop lora-frontend 2>/dev/null || true
+        docker rm lora-frontend 2>/dev/null || true
+        echo -e "${GREEN}✓ lora-frontend container removed${NC}"
     fi
 
     if docker ps -a | grep -q lora-backend; then
@@ -101,11 +101,11 @@ fi
 if [ "$REMOVE_IMAGES" = true ]; then
     echo -e "\n${YELLOW}Removing images...${NC}"
 
-    if docker image inspect lora-chatbot:latest >/dev/null 2>&1; then
-        docker rmi lora-chatbot:latest 2>/dev/null || true
-        echo -e "${GREEN}✓ lora-chatbot image removed${NC}"
+    if docker image inspect lora-frontend:latest >/dev/null 2>&1; then
+        docker rmi lora-frontend:latest 2>/dev/null || true
+        echo -e "${GREEN}✓ lora-frontend image removed${NC}"
     else
-        echo -e "${YELLOW}⚠ lora-chatbot image not found${NC}"
+        echo -e "${YELLOW}⚠ lora-frontend image not found${NC}"
     fi
 else
     echo -e "\n${YELLOW}⚠ Images kept (use --images flag to remove)${NC}"

@@ -84,11 +84,14 @@ echo "Generating requirements.txt..."
 uv export --format requirements-txt > requirements.txt
 
 # Build the image only if it doesn't exist
-if ! docker image inspect lora-chatbot:latest >/dev/null 2>&1; then
-    echo -e "\n${YELLOW}Image not found. Building container image...${NC}"
-    docker build -t lora-chatbot:latest -f Containerfile .
+# Build images if they don't exist
+if ! docker image inspect lora-frontend:latest >/dev/null 2>&1 || \
+   ! docker image inspect lora-backend:latest >/dev/null 2>&1 || \
+   ! docker image inspect lora-worker:latest >/dev/null 2>&1; then
+    echo -e "\n${YELLOW}One or more images not found. Running build script...${NC}"
+    ./scripts/build.sh
 else
-    echo -e "\n${GREEN}✓ Image lora-chatbot:latest already exists${NC}"
+    echo -e "\n${GREEN}✓ All container images already exist${NC}"
 fi
 
 # Stop existing containers via compose
@@ -159,13 +162,13 @@ echo -e "\n${YELLOW}Waiting for application to start...${NC}"
 sleep 5
 
 # Check if containers are running
-if docker ps | grep -q lora-chatbot; then
+if docker ps | grep -q lora-frontend; then
     echo -e "\n${GREEN}======================================"
     echo "✓ Deployment successful!"
     echo "======================================${NC}"
     echo ""
     echo "Services running:"
-    echo "  - Chatbot:     http://localhost:8502"
+    echo "  - Frontend:      http://localhost:8502"
     echo "  - Backend:     http://localhost:8001"
     if [ "$LLM_PROVIDER" = "mlx" ]; then
         echo "  - MLX Server:  http://localhost:8080"

@@ -84,7 +84,7 @@ logs:
 # Open shell in container
 shell:
 	@echo "Opening shell in container..."
-	docker exec -it lora-chatbot /bin/bash
+	docker exec -it lora-frontend /bin/bash
 
 # Clean up - containers only
 clean:

@@ -34,8 +34,8 @@ elif docker compose version &> /dev/null; then
 else
     # Manual stop - stop both containers
     echo "Stopping containers manually..."
-    docker stop lora-chatbot lora-backend lora-worker lora-redis langfuse-server langfuse-db 2>/dev/null || true
-    docker rm lora-chatbot lora-backend lora-worker lora-redis langfuse-server langfuse-db 2>/dev/null || true
+    docker stop lora-frontend lora-backend lora-worker lora-redis langfuse-server langfuse-db 2>/dev/null || true
+    docker rm lora-frontend lora-backend lora-worker lora-redis langfuse-server langfuse-db 2>/dev/null || true
 fi
 
 echo "✓ All services stopped"
