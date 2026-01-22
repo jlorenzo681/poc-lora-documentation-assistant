@@ -4,7 +4,7 @@
 set -e
 
 echo "======================================"
-echo "RAG Chatbot - Docker Deployment"
+echo "LoRA RAG Documentation assistant - Docker Deployment"
 echo "======================================"
 
 # Colors for output

@@ -5,7 +5,7 @@
 set -e
 
 echo "======================================"
-echo "RAG Chatbot - Development Mode"
+echo "LoRA RAG Documentation assistant - Development Mode"
 echo "======================================"
 
 # Colors for output

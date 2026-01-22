@@ -6,7 +6,7 @@
 set -e
 
 echo "======================================"
-echo "RAG Chatbot - Cleanup"
+echo "LoRA RAG Documentation Assistant - Cleanup"
 echo "======================================"
 
 # Colors for output
