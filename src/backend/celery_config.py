@@ -18,3 +18,13 @@ celery_app.conf.update(
     timezone="UTC",
     enable_utc=True,
 )
+
+# Beat Schedule
+from celery.schedules import crontab
+
+celery_app.conf.beat_schedule = {
+    'sync-all-connectors-every-15-mins': {
+        'task': 'src.backend.tasks.sync_all_connectors_task',
+        'schedule': crontab(minute='*/15'),  # Every 15 minutes
+    },
+}
