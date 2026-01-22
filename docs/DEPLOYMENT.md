@@ -9,7 +9,7 @@ Since the chatbot relies on a local LLM server (LM Studio), the container needs 
 ### Prerequisites
 -   Docker installed.
 -   LM Studio Server (optional, for `LLM_PROVIDER=lmstudio`). Default uses MLX.
--   Google Cloud Project with Drive API enabled (optional, for Google Drive connectors).
+-   Microsoft Azure App Registration (optional, for OneDrive connectors) or Google Cloud Project with Drive API enabled (optional, for Google Drive connectors).
 
 ### Method 1: Connecting to Host LM Studio
 
@@ -60,7 +60,7 @@ The deployment includes the following services:
 The Admin UI (`pages/admin.py`) allows you to configure cloud storage connectors:
 
 1. Navigate to the **Data Connectors** page in Streamlit (sidebar).
-2. Add a new connector (Google Drive or OneDrive).
+2. Add a new connector (OneDrive or Google Drive).
 3. Complete the OAuth authorization flow.
 4. Files will be automatically synced every 15 minutes via Celery Beat.
 

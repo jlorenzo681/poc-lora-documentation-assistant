@@ -83,8 +83,8 @@ st.divider()
 st.subheader("Add New Connector")
 
 with st.form("add_connector_form"):
-    provider = st.selectbox("Provider", ["google_drive", "onedrive"])
-    name = st.text_input("Name (e.g. My Shared Drive)")
+    provider = st.selectbox("Provider", ["onedrive", "google_drive"])
+    name = st.text_input("Name (e.g. My OneDrive)")
     
     # Configuration
     folders = st.text_input("Folder ID (e.g. root or specific folder ID)")
