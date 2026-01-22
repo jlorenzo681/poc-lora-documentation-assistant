@@ -5,7 +5,7 @@ import logging
 
 from .base_connector import BaseConnector
 from .google_drive_connector import GoogleDriveConnector
-# from .onedrive_connector import OneDriveConnector
+from .onedrive_connector import OneDriveConnector
 
 logger = logging.getLogger(__name__)
 
@@ -41,8 +41,7 @@ class ConnectorManager:
         if provider == "google_drive":
             return GoogleDriveConnector(config["id"], config)
         elif provider == "onedrive":
-            # return OneDriveConnector(config["id"], config)
-            pass
+            return OneDriveConnector(config["id"], config)
             
         logger.error(f"Unknown provider: {provider}")
         return None

@@ -127,6 +127,18 @@ def authorize_connector(provider: str, redirect_uri: str, connector_id: str):
         
         return {"authorization_url": auth_url}
     
+    elif provider == "onedrive":
+        client_id = os.getenv("MICROSOFT_CLIENT_ID")
+        if not client_id:
+            logger.warning("MICROSOFT_CLIENT_ID not set, using placeholder")
+            client_id = "placeholder_client_id"
+        
+        scope = "Files.Read.All offline_access"
+        # Microsoft uses different OAuth endpoint
+        auth_url = f"https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id={client_id}&redirect_uri={redirect_uri}&response_type=code&scope={scope}&state={connector_id}"
+        
+        return {"authorization_url": auth_url}
+    
     raise HTTPException(status_code=400, detail="Unsupported provider")
 
 @router.get("/oauth/callback/{provider}")
@@ -166,6 +178,36 @@ def oauth_callback(provider: str, code: str, redirect_uri: str, state: str):
                  raise HTTPException(status_code=404, detail="Connector found for state")
             conn.commit()
         return {"status": "success", "message": "Authenticated successfully. You can close this window."}
+    
+    elif provider == "onedrive":
+        # Exchange code for tokens using MSAL
+        connector_id = state
+        
+        logger.info(f"Received OAuth code for OneDrive connector {connector_id}")
+        
+        # For now, mock implementation (real implementation would use MSAL)
+        mock_creds = {
+            "access_token": "mock_access_token_" + code[:5],
+            "refresh_token": "mock_refresh_token",
+            "token_type": "Bearer",
+            "client_id": os.getenv("MICROSOFT_CLIENT_ID"),
+            "client_secret": os.getenv("MICROSOFT_CLIENT_SECRET"),
+            "scope": ["Files.Read.All"]
+        }
+        
+        conn = get_db_connection()
+        try:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "UPDATE connectors SET oauth_credentials = %s WHERE id = %s",
+                    (json.dumps(mock_creds), connector_id)
+                )
+                if cur.rowcount == 0:
+                    raise HTTPException(status_code=404, detail="Connector not found for state")
+                conn.commit()
+            return {"status": "success", "message": "Authenticated successfully. You can close this window."}
+        finally:
+            conn.close()
     finally:
         conn.close()
 
