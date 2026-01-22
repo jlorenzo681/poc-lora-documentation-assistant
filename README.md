@@ -13,6 +13,7 @@ A Retrieval Augmented Generation (RAG) chatbot optimized for Apple Silicon using
 -   **RAG Architecture**: Upload documents to create a knowledge base and ask questions about them.
 -   **LoRA Support**: Architecture ready for integrating Low-Rank Adaptation (LoRA) fine-tuned adapters.
 -   **Flexible Embeddings**: Default local embeddings via HuggingFace (MiniLM), with support for LM Studio.
+-   **Knowledge Graph**: Visualize document relationships with an interactive graph view.
 -   **Observability**: Integrated **Langfuse** for tracing, cost monitoring, and LLM debugging.
 
 ## Documentation
@@ -34,6 +35,7 @@ The system uses a decoupled architecture:
 -   **Backend**: Python core handling document processing and RAG logic.
 -   **LLM Provider**: LM Studio (server mode) or MLX direct inference.
 -   **Vector Store**: FAISS for fast similarity search.
+-   **Graph Store**: NetworkX/PyVis for relationship visualization.
 
 ## License
 

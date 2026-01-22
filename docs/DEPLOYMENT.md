@@ -19,7 +19,7 @@ Since the chatbot relies on a local LLM server (LM Studio), the container needs 
         LLM_BASE_URL=http://host.docker.internal:1234/v1
         ```
     *   **Internal MLX Server (Default)**:
-        If using `LLM_PROVIDER=mlx` (default), the deployment script (`make deploy`) automatically starts an MLX server on the host (port 8080) and configures the container to connect to it via `http://host.docker.internal:8080/v1`.
+        If using `LLM_PROVIDER=mlx`, the deployment script (`make deploy`) automatically starts an MLX server on the host (port 8080) and configures the container to connect to it via `http://host.docker.internal:8080/v1`.
 
 2.  **Build & Run**:
     ```bash
@@ -32,6 +32,7 @@ Since the chatbot relies on a local LLM server (LM Studio), the container needs 
 
 The deployment includes a full observability stack (self-hosted Langfuse v2):
 - **`langfuse-server`**: Access the UI at `http://localhost:3000`.
+- **`lora-backend`**: REST API available at `http://localhost:8001/docs`.
 - **`langfuse-db`**: PostgreSQL database for storing traces.
 
 #### Volume Management

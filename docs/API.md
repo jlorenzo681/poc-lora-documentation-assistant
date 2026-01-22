@@ -3,7 +3,7 @@
 The LoRA RAG Chatbot exposes a RESTful API via FastAPI for document management and chatbot interaction (extensible).
 
 ## Base URL
-`http://localhost:8000` (Local)
+`http://localhost:8001` (External access via Docker) or `http://localhost:8000` (Internal/Direct)
 
 ## Endpoints
 

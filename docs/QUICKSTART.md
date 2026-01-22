@@ -31,8 +31,9 @@ Visit **http://localhost:8501** in your browser.
 1.  **Select Provider**: In the sidebar, verify "LLM Provider" is set to "lmstudio" (or "mlx" for direct inference).
 2.  **Upload Document**: Drag & drop a PDF, Markdown, or Text file.
 3.  **Process**: Click "Process Document" to create the knowledge base.
-4.  **Chat**: Ask questions about your document!
-5.  **Observe**: Check your traces at **http://localhost:3000** (Langfuse).
+4.  **Visualize**: Switch to the **Graph View** tab to see document entity relationships.
+5.  **Chat**: Ask questions about your document!
+6.  **Observe**: Check your traces at **http://localhost:3000** (Langfuse).
 
 ## 💡 Configuration Tips
 -   **Model Selection**: The chatbot uses whatever model is loaded in LM Studio.

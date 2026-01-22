@@ -56,4 +56,4 @@ Thank you for your interest in contributing! This document provides guidelines f
 
 ## Architecture
 
-See `architectural_review.md` (if available) or the README for high-level architecture details.
+See the README for high-level architecture details.
