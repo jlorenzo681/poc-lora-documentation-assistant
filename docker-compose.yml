@@ -56,6 +56,12 @@ services:
       <<: *common-env
       CELERY_BROKER_URL: redis://lora-redis:6380/0
       CELERY_RESULT_BACKEND: redis://lora-redis:6380/0
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-postgres}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      API_BASE_URL: ${API_BASE_URL:-http://lora-backend:8000}
     ports:
       - "8001:8000"
     depends_on:
@@ -81,8 +87,40 @@ services:
       <<: *common-env
       CELERY_BROKER_URL: redis://lora-redis:6380/0
       CELERY_RESULT_BACKEND: redis://lora-redis:6380/0
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-postgres}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
     depends_on:
       - lora-redis
+      - shared-db
+    networks:
+      - lora-network
+
+  lora-celery_beat:
+    image: lora-worker:latest
+    build:
+      context: .
+      dockerfile: Containerfile
+      target: worker
+    container_name: lora-beat
+    command: celery -A src.backend.celery_config beat --loglevel=info
+    volumes:
+      - .:/app:z
+      - ./logs:/app/logs:z
+    environment:
+      <<: *common-env
+      CELERY_BROKER_URL: redis://lora-redis:6380/0
+      CELERY_RESULT_BACKEND: redis://lora-redis:6380/0
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-postgres}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+    depends_on:
+      - lora-redis
+      - shared-db
     networks:
       - lora-network
 
