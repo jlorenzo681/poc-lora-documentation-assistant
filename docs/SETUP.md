@@ -5,7 +5,7 @@ This guide will help you set up and run the RAG Chatbot application using **MLX*
 ## Prerequisites
 
 -   **Operating System**: macOS 13.0+ (Apple Silicon M1/M2/M3 recommended).
--   **Python**: 3.10 or higher.
+-   **Python**: 3.11 or higher.
 -   **LM Studio** (optional): For `LLM_PROVIDER=lmstudio` ([Download here](https://lmstudio.ai/)). Default uses MLX.
 
 ## Installation Steps
@@ -30,7 +30,7 @@ source .venv/bin/activate
 ### 3. Install Dependencies
 
 ```bash
-pip install -r requirements.txt
+uv sync
 ```
 
 ### 4. Configure Environment Variables

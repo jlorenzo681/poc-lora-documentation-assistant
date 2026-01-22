@@ -5,7 +5,7 @@
 # ============================================
 # Base stage - System and Python setup
 # ============================================
-FROM docker.io/library/python:3.10-slim AS base
+FROM docker.io/library/python:3.11-slim AS base
 
 # Set working directory
 WORKDIR /app
@@ -13,19 +13,23 @@ WORKDIR /app
 # Set environment variables
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
-    PIP_NO_CACHE_DIR=1 \
-    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    UV_COMPILE_BYTECODE=1 \
+    UV_LINK_MODE=copy \
     TRANSFORMERS_CACHE=/app/.cache/huggingface \
     HF_HOME=/app/.cache/huggingface
 
-# Install system dependencies
+# Install system dependencies and uv
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
     apt-get update && apt-get install -y \
     build-essential \
     curl \
     git \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    && curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Add uv to PATH
+ENV PATH="/root/.cargo/bin:$PATH"
 
 # Create non-root user for security
 RUN useradd -m -u 1000 appuser
@@ -35,12 +39,12 @@ RUN useradd -m -u 1000 appuser
 # ============================================
 FROM base AS dependencies
 
-# Copy requirements first for better caching
-COPY requirements.txt .
+# Copy dependency files for better caching
+COPY pyproject.toml uv.lock ./
 
-# Install Python dependencies with pip cache mount
-RUN --mount=type=cache,target=/root/.cache/pip \
-    pip install --no-cache-dir -r requirements.txt
+# Install Python dependencies with uv
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --frozen --no-dev
 
 # ============================================
 # Common stage - Application code
@@ -56,6 +60,10 @@ COPY --chown=appuser:appuser app.py .
 COPY --chown=appuser:appuser config/ ./config/
 COPY --chown=appuser:appuser src/ ./src/
 COPY --chown=appuser:appuser .streamlit/ ./.streamlit/
+COPY --chown=appuser:appuser pages/ ./pages/
+
+# Set PATH to use uv's virtual environment
+ENV PATH="/app/.venv/bin:$PATH"
 
 # Switch to non-root user
 USER appuser

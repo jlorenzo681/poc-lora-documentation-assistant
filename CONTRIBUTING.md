@@ -16,8 +16,8 @@ Thank you for your interest in contributing! This document provides guidelines f
     # Using pip
     python3 -m venv .venv
     source .venv/bin/activate
-    pip install -r requirements.txt
-    pip install -e ".[dev]" # Install dev dependencies
+    uv sync  # Install all dependencies
+    uv sync --all-extras  # Install with all optional dependencies
     ```
 
 3.  **Set up Pre-commit (Optional but recommended):**

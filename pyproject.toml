@@ -3,7 +3,7 @@ name = "poc-rag-chatbot-wiki"
 version = "0.1.0"
 description = "LoRA-Enhanced RAG Chatbot optimized for Apple Silicon using MLX and LM Studio"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 dependencies = [
     "faiss-cpu==1.8.0",
     "langchain==0.2.16",

@@ -79,11 +79,6 @@ fi
 echo "Creating necessary directories..."
 mkdir -p data/documents data/vector_stores logs
 
-# Generate requirements.txt
-echo "Generating requirements.txt..."
-uv export --format requirements-txt > requirements.txt
-
-# Build the image only if it doesn't exist
 # Build images if they don't exist
 if ! docker image inspect lora-frontend:latest >/dev/null 2>&1 || \
    ! docker image inspect lora-backend:latest >/dev/null 2>&1 || \

@@ -1,6 +1,6 @@
 # LoRA-Enhanced RAG Chatbot
 
-![Python](https://img.shields.io/badge/Python-3.10%2B-blue)
+![Python](https://img.shields.io/badge/Python-3.11%2B-blue)
 ![MLX](https://img.shields.io/badge/MLX-Apple%20Silicon-green)
 ![Streamlit](https://img.shields.io/badge/Streamlit-UI-red)
 
@@ -26,7 +26,7 @@ A Retrieval Augmented Generation (RAG) chatbot optimized for Apple Silicon using
 
 -   **Apple Silicon Mac** (M1/M2/M3) recommended for MLX.
 -   **LM Studio** ([Download](https://lmstudio.ai/)) - Optional, for `LLM_PROVIDER=lmstudio`. Default uses MLX.
--   Python 3.10+.
+-   Python 3.11+.
 
 ## Architecture
 
