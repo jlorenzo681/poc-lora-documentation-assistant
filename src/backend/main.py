@@ -37,6 +37,9 @@ from src.backend.middleware.metrics import PrometheusMiddleware, metrics_endpoin
 app.add_middleware(PrometheusMiddleware)
 app.add_route("/metrics", metrics_endpoint)
 
+from src.backend.routers import connectors
+app.include_router(connectors.router)
+
 DOCUMENTS_DIR = "data/documents"
 os.makedirs(DOCUMENTS_DIR, exist_ok=True)
 
