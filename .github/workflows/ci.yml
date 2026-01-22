@@ -36,6 +36,8 @@ jobs:
         ruff check .
 
     - name: Run Tests with pytest
+      env:
+        PYTHONPATH: ${{ github.workspace }}
       run: |
         pytest tests/ --cov=src --cov-report=xml
 
