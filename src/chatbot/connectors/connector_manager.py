@@ -4,8 +4,7 @@ import logging
 # from cryptography.fernet import Fernet # Will be used for encryption
 
 from .base_connector import BaseConnector
-# We will import concrete implementations here as they are added
-# from .google_drive_connector import GoogleDriveConnector
+from .google_drive_connector import GoogleDriveConnector
 # from .onedrive_connector import OneDriveConnector
 
 logger = logging.getLogger(__name__)
@@ -40,8 +39,7 @@ class ConnectorManager:
         provider = config.get("provider")
         
         if provider == "google_drive":
-            # return GoogleDriveConnector(config["id"], config)
-            pass
+            return GoogleDriveConnector(config["id"], config)
         elif provider == "onedrive":
             # return OneDriveConnector(config["id"], config)
             pass
