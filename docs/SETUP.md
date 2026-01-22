@@ -6,7 +6,7 @@ This guide will help you set up and run the RAG Chatbot application using **MLX*
 
 -   **Operating System**: macOS 13.0+ (Apple Silicon M1/M2/M3 recommended).
 -   **Python**: 3.10 or higher.
--   **LM Studio**: Installed and running ([Download here](https://lmstudio.ai/)).
+-   **LM Studio** (optional): For `LLM_PROVIDER=lmstudio` ([Download here](https://lmstudio.ai/)). Default uses MLX.
 
 ## Installation Steps
 
@@ -45,7 +45,7 @@ Edit `.env` to ensure it points to your local LM Studio instance:
 
 ```bash
 # .env content
-LLM_PROVIDER=lmstudio  # or 'mlx'
+LLM_PROVIDER=mlx  # Default. Use 'lmstudio' for LM Studio
 LLM_BASE_URL=http://localhost:1234/v1  # Point to your local LM Studio server
 # For Docker on Mac, use: http://host.docker.internal:1234/v1
 

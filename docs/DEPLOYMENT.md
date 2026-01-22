@@ -8,18 +8,21 @@ Since the chatbot relies on a local LLM server (LM Studio), the container needs 
 
 ### Prerequisites
 -   Docker installed.
--   LM Studio Server running on host machine (port 1234).
+-   LM Studio Server (optional, for `LLM_PROVIDER=lmstudio`). Default uses MLX.
 
 ### Method 1: Connecting to Host LM Studio
 
 1.  **Configure `.env`**:
-    *   **External LLM (LM Studio)**:
+    *   **Internal MLX Server (Default)**:
+        ```bash
+        LLM_PROVIDER=mlx
+        ```
+        The deployment script (`make deploy`) automatically starts an MLX server on the host (port 8080) and configures the container to connect to it via `http://host.docker.internal:8080/v1`.
+    *   **External LLM (LM Studio Alternative)**:
         ```bash
         LLM_PROVIDER=lmstudio
         LLM_BASE_URL=http://host.docker.internal:1234/v1
         ```
-    *   **Internal MLX Server (Default)**:
-        If using `LLM_PROVIDER=mlx`, the deployment script (`make deploy`) automatically starts an MLX server on the host (port 8080) and configures the container to connect to it via `http://host.docker.internal:8080/v1`.
 
 2.  **Build & Run**:
     ```bash

@@ -43,9 +43,9 @@ TRAINING_MODEL: str = "mlx-community/Mistral-7B-Instruct-v0.3-4bit"
 
 # LLM Configuration
 # Determine the default provider based on environment or hardware
-# If environment variable is set, use it. Otherwise, default to "lmstudio".
+# If environment variable is set, use it. Otherwise, default to "mlx".
 # Note: "mlx" is only valid on Apple Silicon.
-LLM_PROVIDER = os.getenv("LLM_PROVIDER", "lmstudio")
+LLM_PROVIDER = os.getenv("LLM_PROVIDER", "mlx")
 DEFAULT_LLM_PROVIDER = LLM_PROVIDER # Alias for consistency
 
 LM_STUDIO_URL = os.getenv("LLM_BASE_URL", "http://host.docker.internal:8080/v1")

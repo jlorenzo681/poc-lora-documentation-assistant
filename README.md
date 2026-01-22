@@ -25,7 +25,7 @@ A Retrieval Augmented Generation (RAG) chatbot optimized for Apple Silicon using
 ## Prerequisites
 
 -   **Apple Silicon Mac** (M1/M2/M3) recommended for MLX.
--   **LM Studio** ([Download](https://lmstudio.ai/)) running locally as the LLM server.
+-   **LM Studio** ([Download](https://lmstudio.ai/)) - Optional, for `LLM_PROVIDER=lmstudio`. Default uses MLX.
 -   Python 3.10+.
 
 ## Architecture

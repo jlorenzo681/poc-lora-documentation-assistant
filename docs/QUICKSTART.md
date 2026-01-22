@@ -28,7 +28,7 @@ Visit **http://localhost:8501** in your browser.
 
 ## 📝 Usage
 
-1.  **Select Provider**: In the sidebar, verify "LLM Provider" is set to "lmstudio" (or "mlx" for direct inference).
+1.  **Select Provider**: In the sidebar, verify "LLM Provider" is set to "mlx" (default for Apple Silicon) or "lmstudio" for LM Studio.
 2.  **Upload Document**: Drag & drop a PDF, Markdown, or Text file.
 3.  **Process**: Click "Process Document" to create the knowledge base.
 4.  **Visualize**: Switch to the **Graph View** tab to see document entity relationships.
