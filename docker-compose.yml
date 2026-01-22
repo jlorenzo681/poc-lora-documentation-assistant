@@ -1,34 +1,33 @@
 version: '3.8'
 
+x-common-env: &common-env
+  REDIS_URL: redis://lora-redis:6380/0
+  LLM_BASE_URL: ${LLM_BASE_URL:-http://host.docker.internal:8080/v1}
+  LANGFUSE_SECRET_KEY: ${LANGFUSE_SECRET_KEY}
+  LANGFUSE_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY}
+  LANGFUSE_HOST: http://langfuse-server:3000
+
 services:
   lora-chatbot:
-    image: lora-chatbot:latest
+    image: lora-frontend:latest
     build:
       context: .
       dockerfile: Containerfile
+      target: frontend
     container_name: lora-chatbot
     user: "${UID:-1000}:${GID:-1000}"
     ports:
       - "8502:8501"
     environment:
-      - REDIS_URL=redis://lora-redis:6380/0
-      - LLM_BASE_URL=${LLM_BASE_URL:-http://host.docker.internal:8080/v1}
-      - LANGFUSE_SECRET_KEY=${LANGFUSE_SECRET_KEY}
-      - LANGFUSE_PUBLIC_KEY=${LANGFUSE_PUBLIC_KEY}
-      - LANGFUSE_HOST=http://langfuse-server:3000
+      <<: *common-env
     volumes:
-      # Persistent data volumes
+      # Persistent data volumes (development mounts)
       - .:/app:z
       - ./data/documents:/app/data/documents:z
       - ./data/vector_stores:/app/data/vector_stores:z
       - ./logs:/app/logs:z
     restart: unless-stopped
-    healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8502/_stcore/health" ]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
+    # Healthcheck defined in Dockerfile
     security_opt:
       - no-new-privileges:true
     cap_drop:
@@ -42,33 +41,36 @@ services:
       - lora-backend
 
   lora-backend:
-    image: lora-chatbot:latest
+    image: lora-backend:latest
+    build:
+      context: .
+      dockerfile: Containerfile
+      target: backend
     container_name: lora-backend
-    command: uvicorn src.backend.main:app --host 0.0.0.0 --port 8000 --reload --workers 1
     volumes:
       - .:/app:z
       - ./data/documents:/app/data/documents:z
       - ./data/vector_stores:/app/data/vector_stores:z
       - ${HOME}/.cache/huggingface:/app/.cache/huggingface:z
     environment:
-      - CELERY_BROKER_URL=redis://lora-redis:6380/0
-      - CELERY_RESULT_BACKEND=redis://lora-redis:6380/0
-      - REDIS_URL=redis://lora-redis:6380/0
-      - LLM_BASE_URL=${LLM_BASE_URL:-http://host.docker.internal:8080/v1}
-      - LANGFUSE_SECRET_KEY=${LANGFUSE_SECRET_KEY}
-      - LANGFUSE_PUBLIC_KEY=${LANGFUSE_PUBLIC_KEY}
-      - LANGFUSE_HOST=http://langfuse-server:3000
+      <<: *common-env
+      CELERY_BROKER_URL: redis://lora-redis:6380/0
+      CELERY_RESULT_BACKEND: redis://lora-redis:6380/0
     ports:
       - "8001:8000"
     depends_on:
       - lora-redis
     networks:
       - lora-network
+    # Healthcheck defined in Dockerfile
 
   lora-celery_worker:
-    image: lora-chatbot:latest
+    image: lora-worker:latest
+    build:
+      context: .
+      dockerfile: Containerfile
+      target: worker
     container_name: lora-worker
-    command: celery -A src.backend.celery_config worker --loglevel=info
     volumes:
       - .:/app:z
       - ./data/documents:/app/data/documents:z
@@ -76,13 +78,9 @@ services:
       - ./logs:/app/logs:z
       - ${HOME}/.cache/huggingface:/app/.cache/huggingface:z
     environment:
-      - CELERY_BROKER_URL=redis://lora-redis:6380/0
-      - CELERY_RESULT_BACKEND=redis://lora-redis:6380/0
-      - REDIS_URL=redis://lora-redis:6380/0
-      - LLM_BASE_URL=${LLM_BASE_URL:-http://host.docker.internal:8080/v1}
-      - LANGFUSE_SECRET_KEY=${LANGFUSE_SECRET_KEY}
-      - LANGFUSE_PUBLIC_KEY=${LANGFUSE_PUBLIC_KEY}
-      - LANGFUSE_HOST=http://langfuse-server:3000
+      <<: *common-env
+      CELERY_BROKER_URL: redis://lora-redis:6380/0
+      CELERY_RESULT_BACKEND: redis://lora-redis:6380/0
     depends_on:
       - lora-redis
     networks:
@@ -99,6 +97,11 @@ services:
       - lora-network
     volumes:
       - lora-redis-data:/data
+    healthcheck:
+      test: [ "CMD", "redis-cli", "-p", "6380", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   langfuse-server:
     image: langfuse/langfuse:2

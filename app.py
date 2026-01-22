@@ -9,10 +9,10 @@ import json
 import time
 
 # Internal imports
-from src.chatbot.core.lora_chain import LoRAChain, LoRAChatbot
+# Internal imports
+from src.chatbot.services.chat_service import ChatService
 from src.chatbot.core.storage.vector_store_manager import VectorStoreManager
 from src.chatbot.core.processing.document_processor import DocumentProcessor
-from src.chatbot.core.events.event_bus import EventBus, Event
 from src.chatbot.core.factories.logger_factory import LoggerFactory
 from config import settings
 
@@ -28,8 +28,8 @@ st.set_page_config(
 def initialize_session_state():
     if "messages" not in st.session_state:
         st.session_state.messages = []
-    if "chatbot" not in st.session_state:
-        st.session_state.chatbot = None
+    if "chat_service" not in st.session_state:
+        st.session_state.chat_service = None
     if "processing" not in st.session_state:
         st.session_state.processing = False
     
@@ -51,6 +51,9 @@ def initialize_session_state():
         except Exception:
             pass # It's fine, we'll create one later
     
+    if "chat_service" not in st.session_state or st.session_state.chat_service is None:
+        st.session_state.chat_service = ChatService(st.session_state.vector_store_manager)
+
     if "document_processor" not in st.session_state:
         st.session_state.document_processor = DocumentProcessor(
             vector_store_manager=st.session_state.vector_store_manager
@@ -61,41 +64,17 @@ logger = LoggerFactory.get_logger("streamlit_app")
 
 # --- Init Chatbot ---
 def initialize_chatbot():
-    """Initialize the chatbot logic."""
+    """Initialize the chatbot logic using Service."""
     try:
-        # Default to settings default
         provider = st.session_state.get("llm_provider", settings.DEFAULT_LLM_PROVIDER)
-        model_name = settings.MLX_MODEL_PATH
+        st.session_state.chat_service.llm_provider = provider
         
-        logger.info(f"Initializing Chatbot with Provider: {provider}, Model: {model_name}")
-        
-        # Get Retriever
-        try:
-            retriever = st.session_state.vector_store_manager.get_retriever(k=3)
-        except ValueError:
-            # If no vector store, we can't fully init the RAG chain yet.
-            # We will return False to indicate not ready.
-            return False
-            
-        # Create Chain
-        chain = LoRAChain(
-            retriever=retriever,
-            llm_provider=provider,
-            lmstudio_base_url=settings.LM_STUDIO_URL,
-            model_name=model_name,
-            temperature=0.1
-        )
-        
-        conversational_chain = chain.create_conversational_chain()
-        
-        st.session_state.chatbot = LoRAChatbot(
-            chain=conversational_chain,
-            return_sources=True,
-            langfuse_handler=chain.langfuse_handler
-        )
-        # st.toast(f"Initialized with {provider.upper()}")
-        logger.info("Chatbot initialization successful")
-        return True
+        success = st.session_state.chat_service.initialize_chatbot()
+        if success:
+           logger.info("Chatbot initialization successful")
+        else:
+           logger.warning("Chatbot init failed - likely no vector store")
+        return success
         
     except Exception as e:
         st.error(f"Failed to init chatbot: {e}")
@@ -158,7 +137,7 @@ def main():
                     st.error(f"Error processing: {e}")
 
         st.divider()
-        if st.session_state.chatbot is None:
+        if not st.session_state.chat_service.chatbot:
              # Try to init
              if initialize_chatbot():
                  pass # Success
@@ -167,11 +146,10 @@ def main():
             
         if st.button("Clear Chat"):
             st.session_state.messages = []
-            if st.session_state.chatbot:
-                st.session_state.chatbot.reset_conversation()
+            st.session_state.chat_service.reset_conversation()
 
     # Chat Interface
-    if st.session_state.chatbot:
+    if st.session_state.chat_service.chatbot:
         # Display History
         for msg in st.session_state.messages:
             with st.chat_message(msg["role"]):
@@ -191,24 +169,27 @@ def main():
             # Generate Response
             with st.chat_message("assistant"):
                 with st.spinner("Thinking..."):
-                    response = st.session_state.chatbot.ask(prompt)
-                    answer = response.get("answer", "Error generating response.")
-                    sources = response.get("sources", [])
-                    
-                    st.markdown(answer)
-                    if sources:
-                        with st.status("📚 Referenced Sources", expanded=False):
-                             for s in sources:
-                                 st.markdown(f"**{s['index']}. {s.get('location', 'Unknown Source')}**")
-                                 st.caption(s['content'])
-                                 st.divider()
-            
-            # Save History
-            st.session_state.messages.append({
-                "role": "assistant", 
-                "content": answer,
-                "sources": sources
-            })
+                    try:
+                        response = st.session_state.chat_service.process_query(prompt)
+                        answer = response.get("answer", "Error generating response.")
+                        sources = response.get("sources", [])
+                        
+                        st.markdown(answer)
+                        if sources:
+                            with st.status("📚 Referenced Sources", expanded=False):
+                                 for s in sources:
+                                     st.markdown(f"**{s['index']}. {s.get('location', 'Unknown Source')}**")
+                                     st.caption(s['content'])
+                                     st.divider()
+                        
+                        # Save History
+                        st.session_state.messages.append({
+                            "role": "assistant", 
+                            "content": answer,
+                            "sources": sources
+                        })
+                    except Exception as e:
+                        st.error(f"Error: {e}")
     else:
         # Welcome / Empty State
         st.info("👋 Welcome! Please upload a PDF or Text file in the sidebar to create your Knowledge Base.")

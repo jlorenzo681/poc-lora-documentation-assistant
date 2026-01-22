@@ -29,7 +29,6 @@ DEFAULT_EMBEDDING_TYPE: str = "huggingface"  # Options: "huggingface", "lmstudio
 # Dynamic Embedding Models
 EMBEDDING_MODEL_EN: str = "nomic-ai/nomic-embed-text-v1.5-GGUF" # High quality English model (LM Studio)
 EMBEDDING_MODEL_MULTILINGUAL: str = "text-embedding-bge-m3"   # High quality Multilingual model (LM Studio)
-EMBEDDING_MODEL_MULTILINGUAL: str = "text-embedding-bge-m3"   # High quality Multilingual model (LM Studio)
 FASTTEXT_MODEL_PATH: str = "data/models/lid.176.ftz"
 
 # Langfuse Settings
@@ -41,22 +40,20 @@ LANGFUSE_HOST = os.getenv("LANGFUSE_HOST", "https://cloud.langfuse.com")
 ENABLE_LORA: bool = True
 TRAINING_LLM_PROVIDER: str = "mlx"
 TRAINING_MODEL: str = "mlx-community/Mistral-7B-Instruct-v0.3-4bit"
-MLX_MODEL_PATH: str = TRAINING_MODEL # Alias for backward compatibility if needed
-MLX_ADAPTER_PATH: str = "data/adapters"
-
-
-# LLM Settings (Runtime / Docker)
-# Provider options: "lmstudio" (default), "mlx_server"
-DEFAULT_LLM_PROVIDER: str = "lmstudio" 
 
 # LLM Configuration
-LLM_PROVIDER = os.getenv("LLM_PROVIDER", "mlx") # Options: "mlx", "lmstudio"
-DEFAULT_LLM_PROVIDER = "mlx" 
-LM_STUDIO_URL = os.getenv("LLM_BASE_URL", "http://host.docker.internal:8080/v1") # Default to MLX Server for Docker
+# Determine the default provider based on environment or hardware
+# If environment variable is set, use it. Otherwise, default to "lmstudio".
+# Note: "mlx" is only valid on Apple Silicon.
+LLM_PROVIDER = os.getenv("LLM_PROVIDER", "lmstudio")
+DEFAULT_LLM_PROVIDER = LLM_PROVIDER # Alias for consistency
+
+LM_STUDIO_URL = os.getenv("LLM_BASE_URL", "http://host.docker.internal:8080/v1")
 LLM_BASE_URL = LM_STUDIO_URL # Alias for compatibility
 
 # MLX Specifics (for local training/inference)
-MLX_MODEL_PATH = os.getenv("MLX_MODEL_PATH", "mlx-community/Mistral-7B-Instruct-v0.3-4bit")
+# Use env var if set, otherwise default to the same model used for training
+MLX_MODEL_PATH = os.getenv("MLX_MODEL_PATH", TRAINING_MODEL)
 MLX_ADAPTER_PATH = os.getenv("MLX_ADAPTER_PATH", "data/adapters")
 
 # RAG Settings (Restored)

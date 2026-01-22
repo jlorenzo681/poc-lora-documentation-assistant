@@ -7,12 +7,12 @@ from pathlib import Path
 # Add project root to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from src.chatbot.core.event_bus import (
+from src.chatbot.core.events.event_bus import (
     EventBus, Event, DocumentUploadEvent, ProcessingStartEvent, 
     ProcessingCompleteEvent, VectorStoreUpdateEvent
 )
-from src.chatbot.core.document_processor import DocumentProcessor
-from src.chatbot.core.vector_store_manager import VectorStoreManager
+from src.chatbot.core.processing.document_processor import DocumentProcessor
+from src.chatbot.core.storage.vector_store_manager import VectorStoreManager
 
 def test_event_flow():
     print("Testing Event Flow...")
