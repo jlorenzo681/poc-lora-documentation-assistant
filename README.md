@@ -19,7 +19,7 @@ A Retrieval Augmented Generation (RAG) chatbot optimized for Apple Silicon using
 
 -   [**Quick Start**](docs/QUICKSTART.md): Get up and running in minutes.
 -   [**Setup Guide**](docs/SETUP.md): Detailed installation and environment configuration.
--   [**Deployment**](docs/DEPLOYMENT.md): How to deploy using Docker/Podman.
+-   [**Deployment**](docs/DEPLOYMENT.md): How to deploy using Docker.
 
 ## Prerequisites
 

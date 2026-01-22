@@ -1,6 +1,6 @@
 # Deployment Scripts
 
-This directory contains scripts for managing the RAG Chatbot deployment with Podman.
+This directory contains scripts for managing the RAG Chatbot deployment with Docker.
 
 ## Available Scripts
 

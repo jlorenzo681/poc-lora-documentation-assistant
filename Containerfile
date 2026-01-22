@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1.4
 # Containerfile for RAG Chatbot - Optimized for fast builds
-# Compatible with Podman and Docker
+# Compatible with Docker
 
 # ============================================
 # Base stage - System and Python setup

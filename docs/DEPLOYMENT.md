@@ -1,13 +1,13 @@
 # Deployment Guide
 
-This guide covers deploying the RAG Chatbot using Docker/Podman, connecting to a locally running LM Studio instance.
+This guide covers deploying the RAG Chatbot using Docker, connecting to a locally running LM Studio instance.
 
 ## Containerized Deployment
 
 Since the chatbot relies on a local LLM server (LM Studio), the container needs access to the host machine's network.
 
 ### Prerequisites
--   Docker or Podman installed.
+-   Docker installed.
 -   LM Studio Server running on host machine (port 1234).
 
 ### Method 1: Connecting to Host LM Studio

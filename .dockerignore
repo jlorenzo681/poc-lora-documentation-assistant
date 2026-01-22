@@ -1,5 +1,4 @@
 # .dockerignore - optimized for faster builds
-# This is used by Docker, while .containerignore is used by Podman
 
 # Git
 .git
