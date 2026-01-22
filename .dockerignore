@@ -21,8 +21,6 @@ venv/
 env/
 ENV/
 .venv
-uv.lock
-pyproject.toml
 .cache/
 .ruff_cache/
 
