@@ -35,22 +35,30 @@ class VectorStoreManager:
         self.vector_store = None
         self.event_bus = event_bus
         self.embedding_type = embedding_type
-        self.ft_model = self._load_fasttext_model()
+        self.ft_model = None  # OPTIMIZATION: Lazy load FastText model
+        self._ft_model_loaded = False
         self.current_embedding_model = None # Track which model is currently loaded
 
     def _load_fasttext_model(self):
-        """Load the FastText language identification model."""
+        """Load the FastText language identification model (lazy loading)."""
+        if self._ft_model_loaded:
+            return self.ft_model
+            
+        self._ft_model_loaded = True
         model_path = settings.FASTTEXT_MODEL_PATH
         if not os.path.exists(model_path):
             print(f"⚠ FastText model not found at {model_path}. Language detection disabled.")
+            self.ft_model = None
             return None
         
         # Suppress fasttext warning about load_model
         fasttext.FastText.eprint = lambda x: None
         try:
-            return fasttext.load_model(str(model_path))
+            self.ft_model = fasttext.load_model(str(model_path))
+            return self.ft_model
         except Exception as e:
             print(f"❌ Error loading FastText model: {e}")
+            self.ft_model = None
             return None
 
     def detect_language(self, text: str) -> str:
@@ -63,6 +71,10 @@ class VectorStoreManager:
         Returns:
             Language code (e.g., 'en', 'es') or 'en' if detection fails
         """
+        # Lazy load FastText model only when needed
+        if not self._ft_model_loaded:
+            self._load_fasttext_model()
+        
         if not self.ft_model:
             return 'en'
             

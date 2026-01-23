@@ -38,18 +38,12 @@ def initialize_session_state():
         LoggerFactory.setup_global_file_logger()
         st.session_state.logger_initialized = True
     
-    # Initialize Managers
+    # OPTIMIZATION: Lazy initialization - only create managers when needed
+    # Don't load vector store on startup, let it load on first query
     if "vector_store_manager" not in st.session_state:
         st.session_state.vector_store_manager = VectorStoreManager()
-        # Try to load existing store if available
-        try:
-            # Look for default store
-            default_path = os.path.join(settings.VECTOR_STORE_PATH, "faiss_index")
-            if os.path.exists(settings.VECTOR_STORE_PATH):
-                 # Simple attempt to find any index in the directory
-                 st.session_state.vector_store_manager.load_vector_store(default_path)
-        except Exception:
-            pass # It's fine, we'll create one later
+        # REMOVED: Automatic vector store loading on startup
+        # This will be loaded lazily when get_retriever() is called
     
     if "chat_service" not in st.session_state or st.session_state.chat_service is None:
         st.session_state.chat_service = ChatService(st.session_state.vector_store_manager)
