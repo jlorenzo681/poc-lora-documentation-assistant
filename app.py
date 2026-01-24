@@ -148,10 +148,22 @@ def main():
         for msg in st.session_state.messages:
             with st.chat_message(msg["role"]):
                 st.markdown(msg["content"])
-                if "sources" in msg and msg["sources"]:
-                     with st.expander("Sources"):
-                         for s in msg["sources"]:
-                             st.markdown(f"**{s['index']}**: {s['content']}")
+                
+                # Check for sources/reasoning in history
+                has_sources = "sources" in msg and msg["sources"]
+                has_reasoning = "reasoning" in msg and msg["reasoning"]
+                
+                if has_sources or has_reasoning:
+                     with st.expander("🧠 Reasoning Process & Sources"):
+                         if has_reasoning:
+                             st.markdown("### 💭 Chain-of-Thought")
+                             st.markdown(msg["reasoning"])
+                             st.divider()
+
+                         if has_sources:
+                             st.markdown("### 📚 Referenced Documents")
+                             for s in msg["sources"]:
+                                 st.markdown(f"**{s['index']}**: {s['content']}")
 
         # User Input
         if prompt := st.chat_input("Ask a question based on your documents..."):
@@ -167,10 +179,19 @@ def main():
                         response = st.session_state.chat_service.process_query(prompt)
                         answer = response.get("answer", "Error generating response.")
                         sources = response.get("sources", [])
+                        reasoning = response.get("reasoning", "")
                         
                         st.markdown(answer)
-                        if sources:
-                            with st.status("📚 Referenced Sources", expanded=False):
+                        
+                        # --- Reasoning & Sources Visualization ---
+                        with st.expander("🧠 Reasoning Process & Sources", expanded=False):
+                             if reasoning:
+                                 st.markdown("### 💭 Chain-of-Thought")
+                                 st.markdown(reasoning)
+                                 st.divider()
+                             
+                             if sources:
+                                 st.markdown("### 📚 Referenced Documents")
                                  for s in sources:
                                      st.markdown(f"**{s['index']}. {s.get('location', 'Unknown Source')}**")
                                      st.caption(s['content'])
@@ -180,7 +201,8 @@ def main():
                         st.session_state.messages.append({
                             "role": "assistant", 
                             "content": answer,
-                            "sources": sources
+                            "sources": sources,
+                            "reasoning": reasoning
                         })
                     except Exception as e:
                         st.error(f"Error: {e}")

@@ -19,6 +19,7 @@ class LoRAState(TypedDict):
     generation: str
     documents: List[Document]
     web_search_needed: bool
+    reasoning_trace: str # Captured from CoT
 
 
 class AgentLoRA:
@@ -126,17 +127,30 @@ class AgentLoRA:
 
     def generate(self, state: LoRAState) -> Dict[str, Any]:
         """
-        Generate answer.
+        Generate answer using Chain-of-Thought reasoning.
         """
         print("---GENERATE---")
         question = state["question"]
         documents = state["documents"]
         
-        # Reuse existing chain logic if possible or build ad-hoc
-        # Using a simple chain for generation here using the LoRAChain's LLM
+        # Enhanced Chain-of-Thought Prompt
+        system_prompt = """You are a helpful assistant answering questions based on provided documents.
         
+        Instructions:
+        1. Context Analysis: Identify key information in the provided context related to the user's question.
+        2. Reasoning: concise step-by-step reasoning connecting the context to the answer.
+        3. Answer: Formulate a clear, comprehensive answer based ONLY on the context.
+        
+        Format your response as:
+        [Reasoning]
+        <your reasoning steps here>
+        
+        [Answer]
+        <your final answer here>
+        """
+
         prompt = ChatPromptTemplate.from_messages([
-            ("system", self.lora_chain.system_prompt),
+            ("system", system_prompt),
             ("human", "Context: {context} \n\n Question: {question}")
         ])
         
@@ -144,9 +158,27 @@ class AgentLoRA:
         context = "\n\n".join([d.page_content for d in documents])
         
         chain = prompt | self.llm | StrOutputParser()
-        generation = chain.invoke({"context": context, "question": question})
+        full_response = chain.invoke({"context": context, "question": question})
         
-        return {"documents": documents, "question": question, "generation": generation}
+        # Parse reasoning and answer
+        reasoning = ""
+        answer = full_response
+        
+        if "[Reasoning]" in full_response and "[Answer]" in full_response:
+             parts = full_response.split("[Answer]")
+             reasoning = parts[0].replace("[Reasoning]", "").strip()
+             answer = parts[1].strip()
+        elif "[Answer]" in full_response:
+             parts = full_response.split("[Answer]")
+             reasoning = parts[0].strip()
+             answer = parts[1].strip()
+
+        return {
+            "documents": documents, 
+            "question": question, 
+            "generation": answer,
+            "reasoning_trace": reasoning # Pass reasoning to UI
+        }
 
     def rewrite_query(self, state: LoRAState) -> Dict[str, Any]:
         """

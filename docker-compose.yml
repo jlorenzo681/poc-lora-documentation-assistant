@@ -6,6 +6,8 @@ x-common-env: &common-env
   LANGFUSE_SECRET_KEY: ${LANGFUSE_SECRET_KEY}
   LANGFUSE_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY}
   LANGFUSE_HOST: http://langfuse-server:3000
+  SSL_CERT_FILE: /app/.venv/lib/python3.11/site-packages/certifi/cacert.pem
+  REQUESTS_CA_BUNDLE: /app/.venv/lib/python3.11/site-packages/certifi/cacert.pem
 
 services:
   lora-frontend:
