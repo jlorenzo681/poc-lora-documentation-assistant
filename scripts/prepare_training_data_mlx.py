@@ -102,7 +102,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Prepare data for MLX training")
     parser.add_argument("--data_dir", type=str, default="data/documents", help="Directory containing source documents")
     parser.add_argument("--output_dir", type=str, default="data/mlx_data", help="Output directory for JSONL files")
-    parser.add_argument("--chunk_size", type=int, default=2048, help="Token/char chunk size")
+    parser.add_argument("--chunk_size", type=int, default=1536, help="Token/char chunk size")
+    parser.add_argument("--chunk_overlap", type=int, default=256, help="Token/char chunk overlap")
     args = parser.parse_args()
 
     # Ensure paths are relative to project root or absolute
@@ -110,4 +111,4 @@ if __name__ == "__main__":
     data_dir = base_path / args.data_dir
     output_dir = base_path / args.output_dir
 
-    prepare_data(str(data_dir), str(output_dir), chunk_size=args.chunk_size)
+    prepare_data(str(data_dir), str(output_dir), chunk_size=args.chunk_size, chunk_overlap=args.chunk_overlap)
