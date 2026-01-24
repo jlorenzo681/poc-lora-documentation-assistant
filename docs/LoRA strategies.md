@@ -123,7 +123,8 @@ Given your infrastructure (Mac Mini M4 with 16GB RAM), here's an optimized LoRA 
 - Model: BAAI/bge-base-en-v1.5 or similar (base, not large)
 - Rank: 16-32
 - Alpha: 32-64
-- Training: CPU-based with batch_size=8, gradient_accumulation_steps=2
+- Training: Based on MLX with batch_size=2, learning_rate=2e-5
+- Iterations: 1000 steps with checkpointing every 100 steps
 - Duration: 1-2 hours for 5K examples
 ```
 
